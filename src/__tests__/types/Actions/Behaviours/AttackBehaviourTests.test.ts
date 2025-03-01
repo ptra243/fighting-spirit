@@ -3,7 +3,7 @@ import {createTestCharacter} from "./testCharacterFactory.test";
 
 describe('AttackBehaviour', () => {
     it('should deal basic damage reduced by defense', () => {
-        const attack = new AttackBehaviour("Test Attack", 0, 10);
+        const attack = new AttackBehaviour("Test Attack", 10);
         const attacker = createTestCharacter();
         const target = createTestCharacter({ defence: 3 });
 
@@ -15,9 +15,7 @@ describe('AttackBehaviour', () => {
     it('should scale with attack stat and be reduced by defense', () => {
         const attack = new AttackBehaviour(
             "Scaled Attack",
-            0,
             10,
-            true,
             AttackScalingStat.Attack,
             100
         );
@@ -30,7 +28,7 @@ describe('AttackBehaviour', () => {
     });
 
     it('should deal minimum 1 damage when defense equals or exceeds damage', () => {
-        const attack = new AttackBehaviour("Weak Attack", 0, 5);
+        const attack = new AttackBehaviour("Weak Attack",  5);
         const attacker = createTestCharacter();
         const target = createTestCharacter({ defence: 10 });
 
@@ -45,7 +43,7 @@ describe('AttackBehaviour', () => {
     });
 
     it('should deal minimum 1 damage with very high defense', () => {
-        const attack = new AttackBehaviour("Normal Attack", 0, 10);
+        const attack = new AttackBehaviour("Normal Attack", 10);
         const attacker = createTestCharacter();
         const target = createTestCharacter({ defence: 100 });
 
@@ -54,37 +52,11 @@ describe('AttackBehaviour', () => {
         expect(updatedTarget.stats.hitPoints).toBe(99); // Minimum 1 damage despite high defense
     });
 
-    it('should handle charging mechanics with minimum damage', () => {
-        const attack = new AttackBehaviour("Charged Attack", 2, 20);
-        const attacker = createTestCharacter();
-        const target = createTestCharacter({ defence: 25 });
-
-        // First turn - start charging
-        let [chargedAttacker, unchangedTarget] = attack.execute(attacker, target);
-        expect(chargedAttacker.isCharging).toBe(true);
-        expect(chargedAttacker.chargeTurns).toBe(2);
-        expect(unchangedTarget.stats.hitPoints).toBe(100);
-
-        // Second turn - continue charging
-        [chargedAttacker, unchangedTarget] = attack.execute(chargedAttacker, unchangedTarget);
-        expect(chargedAttacker.isCharging).toBe(true);
-        expect(chargedAttacker.chargeTurns).toBe(1);
-        expect(unchangedTarget.stats.hitPoints).toBe(100);
-
-        // Third turn - attack
-        [chargedAttacker, unchangedTarget] = attack.execute(chargedAttacker, unchangedTarget);
-        expect(unchangedTarget.stats.hitPoints).toBe(99); // Minimum 1 damage when defense > damage
-        expect(chargedAttacker.chargeTurns).toBe(0);
-        expect(chargedAttacker.isCharging).toBe(false);
-    });
-
     describe('AttackBehaviour Scaling Tests', () => {
         it('should scale with Attack stat correctly', () => {
             const attack = new AttackBehaviour(
                 "Attack Scaled",
-                0,
                 10,
-                true,
                 AttackScalingStat.Attack,
                 120
             );
@@ -101,9 +73,7 @@ describe('AttackBehaviour', () => {
         it('should scale with Defense stat correctly', () => {
             const attack = new AttackBehaviour(
                 "Defense Scaled",
-                0,
                 10,
-                true,
                 AttackScalingStat.Defense,
                 150
             );
@@ -120,9 +90,7 @@ describe('AttackBehaviour', () => {
         it('should scale with Shield stat correctly', () => {
             const attack = new AttackBehaviour(
                 "Shield Scaled",
-                0,
                 10,
-                true,
                 AttackScalingStat.Shield,
                 80
             );
@@ -139,9 +107,7 @@ describe('AttackBehaviour', () => {
         it('should scale with Energy stat correctly', () => {
             const attack = new AttackBehaviour(
                 "Energy Scaled",
-                0,
                 10,
-                true,
                 AttackScalingStat.Energy,
                 200
             );
@@ -158,9 +124,7 @@ describe('AttackBehaviour', () => {
         it('should scale with Health stat correctly', () => {
             const attack = new AttackBehaviour(
                 "Health Scaled",
-                0,
                 10,
-                true,
                 AttackScalingStat.Health,
                 50
             );
@@ -177,9 +141,7 @@ describe('AttackBehaviour', () => {
         it('should handle fractional scaling correctly', () => {
             const attack = new AttackBehaviour(
                 "Fraction Test",
-                0,
                 10,
-                true,
                 AttackScalingStat.Attack,
                 33
             );
@@ -196,9 +158,7 @@ describe('AttackBehaviour', () => {
         it('should handle zero stat scaling correctly', () => {
             const attack = new AttackBehaviour(
                 "Zero Stat Test",
-                0,
                 10,
-                true,
                 AttackScalingStat.Shield,
                 100
             );

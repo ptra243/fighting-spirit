@@ -5,7 +5,7 @@ import {Character} from "../../../../types/Character/Character";
 import {CharacterStats} from "../../../../types/Character/CharacterStats";
 import {Named} from "../../../../BattleManager";
 
-export function createTestCharacter(overrides = {}) {
+export function createTestCharacter(statoverrides = {}, other = {}) {
     const mockLogCallbacks = {
         battleLog: <T extends Named>(source: T, type: string, value: number, target: Character) => {
             console.log(`[BATTLE] ${source.name} ${type} ${value} -> ${target.name}`);
@@ -14,6 +14,9 @@ export function createTestCharacter(overrides = {}) {
             console.log(`[MESSAGE] ${message}`);
         }
     };
+    if ('chargesPerTurn' in statoverrides) {
+        console.log('Charges per turn:', statoverrides.chargesPerTurn);
+    }
 
     return new Character({
         name: "Test Character",
@@ -25,10 +28,11 @@ export function createTestCharacter(overrides = {}) {
             attack: 5,
             defence: 5,
             shield: 0,
-            ...overrides
+            ...statoverrides
         }),
         actions: [],
-        logCallback: mockLogCallbacks
+        logCallback: mockLogCallbacks,
+        ...other
     });
 }
 

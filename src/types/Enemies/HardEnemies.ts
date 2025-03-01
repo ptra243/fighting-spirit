@@ -19,7 +19,7 @@ export const Lich = createCharacter(
     4,   // Energy Regen
     [
         createAction("Dark Heal", [createHeal("Dark Heal", 8)], 3),
-        createAction("Shadow Bolt", [createAttack("Shadow Bolt", 7, 0)], 2),
+        createAction("Shadow Bolt", [createAttack("Shadow Bolt", 7)], 2),
         createAction(
             "Weaken",
             [createDebuff("Attack Down", BuffStat.Attack, -2, 2)],
@@ -37,22 +37,22 @@ export const cursedKnight = createCharacter(
     3,
     2,
     [
-        createAction("Dark Cleave", [createAttack("Dark Cleave", 10, 0)], 5),
+        createAction("Dark Cleave", [createAttack("Dark Cleave", 10)], 5),
         createAction("Unholy Barrier", [createBuff("Defense Boost", BuffStat.Defense, 5, 3)], 4),
         createAction("Life Drain", [
-            createAttack("Life Drain", 8, 0),
+            createAttack("Life Drain", 8),
             createHeal("Drain Heal", 6),
         ], 6),
         createAction("Cursed Slash", [
-            createAttack("Cursed Slash", 9, 0),
+            createAttack("Cursed Slash", 9),
             createDebuff("Attack Down", BuffStat.Attack, -2, 2),
         ], 4), // Damages and weakens enemy Attack
         createAction("Unholy Fire", [
             createDamageOverTime("Burn", 3, 3),
         ], 5), // Applies burning to target
-        createAction("Defiled Ground", [createAttack("AoE Corruption", 10, 0)], 6), // AoE dark attack
+        createAction("Defiled Ground", [createAttack("AoE Corruption", 10)], 6), // AoE dark attack
         createAction("Armor Breaker", [
-            createAttack("Heavy Slash", 12, 0),
+            createAttack("Heavy Slash", 12),
             createDebuff("Defense Down", BuffStat.Defense, -4, 3),
         ], 6),
     ]
@@ -67,10 +67,10 @@ export const dragonWhelp = createCharacter(
     1,
     3,
     [
-        createAction("Fire Breath", [createAttack("Fire AoE", 12, 0)], 6),
-        createAction("Tail Swipe", [createAttack("Tail Swipe", 8, 0)], 3),
-        createAction("Wing Buffet", [createAttack("Wing Buffet", 6, 0)], 2),
-        createAction("Scorching Claw", [createAttack("Claw Strike", 10, 0)], 4),
+        createAction("Fire Breath", [createAttack("Fire AoE", 12)], 6),
+        createAction("Tail Swipe", [createAttack("Tail Swipe", 8)], 3),
+        createAction("Wing Buffet", [createAttack("Wing Buffet", 6)], 2),
+        createAction("Scorching Claw", [createAttack("Claw Strike", 10)], 4),
         createAction("Dragon Roar", [
             createDebuff("Fear", BuffStat.Attack, -4, 2),
         ], 3), // Temporarily lowers enemies’ attack
@@ -93,9 +93,9 @@ export const demonLord = createCharacter(
     4,
     5,
     [
-        createAction("Overpowering Strike", [createAttack("Strike", 20, 0)], 6),
+        createAction("Overpowering Strike", [createAttack("Strike", 20)], 6),
         createAction("War Cry", [createBuff("Attack Boost", BuffStat.Attack, 5, 3)], 5),
-        createAction("Crushing Blow", [createAttack("Crushing Blow", 15, 0)], 4),
+        createAction("Crushing Blow", [createAttack("Crushing Blow", 15)], 4),
         createAction("Dark Aura", [
             createDebuff("Defense Down", BuffStat.Defense, -3, 3),
         ], 3), // Weakens all enemies’ defense
@@ -103,7 +103,7 @@ export const demonLord = createCharacter(
             createDebuff("Energy Drain", BuffStat.EnergyRegen, -2, 3),
         ], 4), // Reduces energy regen of enemies
         createAction("Earth Shatter", [
-            createAttack("AoE Earthquake", 18, 0),
+            createAttack("AoE Earthquake", 18),
         ], 6), // Heavy AoE damage
         createAction("Warlord's Resolve", [
             createBuff("Healing Aura", BuffStat.hpRegen, 5, 3),

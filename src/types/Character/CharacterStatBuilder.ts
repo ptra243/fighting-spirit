@@ -122,7 +122,7 @@ export class StatBuilder {
     }
 
     modifyEnergy(amount: number): StatBuilder {
-        this.currentStats = this.currentStats.cloneWith({
+         this.currentStats = this.currentStats.cloneWith({
             energy: Math.min(
                 this.currentStats.maxEnergy,
                 Math.max(0, this.currentStats.energy + amount)
@@ -131,13 +131,41 @@ export class StatBuilder {
         return this;
     }
 
+
+    // Add new method to apply class stats
+    applyClassStats(): StatBuilder {
+        if (!this.character.getClasses) return this; // For backward compatibility
+
+        const classes = this.character.getClasses();
+        const classStats = classes.reduce((totalStats, characterClass) => {
+            const stats = characterClass.getCurrentStats();
+            return totalStats.add(stats);
+        }, new CharacterStats({}));
+
+        this.currentStats = this.currentStats.add(classStats);
+        return this;
+    }
+
+    //default build
     build(): BuildResult {
+        // Add applyClassStats to the build chain
         return {
-            stats: new CharacterStats({...this.currentStats}),
+            stats: this.currentStats,
             buffs: this.currentBuffs,
             dots: this.currentDots
         };
     }
+
+    getStatsForTurn(){
+        return this
+            .applyClassStats()
+            .applyEquipmentBuffs()
+            .applyActiveBuffs()
+            .applyDOTs()
+            .applyRegen()
+            .build();
+    }
+
 
     decayShield(): StatBuilder {
         this.currentStats = this.currentStats.cloneWith({

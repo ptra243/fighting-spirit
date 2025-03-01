@@ -8,6 +8,9 @@ import {BaseEquipment} from "../Equipment/EquipmentClassHierarchy";
 import {CharacterEquipment} from "./CharacterEquipment";
 import {StatBuilder} from "./CharacterStatBuilder";
 import {LogCallbacks, Named} from "../../BattleManager";
+import {CharacterClass} from "../Classes/CharacterClass";
+import {ActionTrigger} from "../Actions/Triggers/Trigger";
+import {BaseTriggerManager, TriggerManager} from "../Actions/Triggers/TriggerManager";
 
 
 export class Character {
@@ -23,6 +26,9 @@ export class Character {
     readonly currentAction: number;
 
     readonly equipment: CharacterEquipment;
+    readonly classes: CharacterClass[] = [];
+    public triggerManager: TriggerManager;
+
 
 
     //buffs and dots
@@ -60,7 +66,35 @@ export class Character {
         this.actions = initialCharacter.actions;
         this.chosenActions = initialCharacter.chosenActions || [];
         this.currentAction = initialCharacter.currentAction || 0;
+        this.classes = initialCharacter.classes || [];
+        this.triggerManager = new BaseTriggerManager();
 
+        if (initialCharacter.triggerManager.triggers) {
+            initialCharacter.triggerManager.triggers.forEach(trigger => this.triggerManager.addTrigger(trigger));
+        }
+    }
+
+    public addClass(characterClass: CharacterClass): void {
+        this.classes.push(characterClass);
+    }
+
+    // Helper method to add character-wide triggers
+    addTrigger(trigger: ActionTrigger): Character {
+        this.triggerManager.addTrigger(trigger);
+        return this;
+    }
+
+    public levelUpClass(className: string): boolean {
+        const classToLevel = this.classes.find(c => c.getName() === className);
+        if (classToLevel) {
+            classToLevel.levelUp();
+            return true;
+        }
+        return false;
+    }
+
+    public getClasses(): CharacterClass[] {
+        return [...this.classes];
     }
 
     // Set or replace the logger
@@ -68,10 +102,10 @@ export class Character {
         return new Character({...this, logCallback: logCallback});
     }
 
-    takeDamage<T extends Named>(damage: number, source: T | null): Character {
+    takeDamage<T extends Named>(damage: number, source: T | null, ignoreDefence: boolean = false): Character {
         const builder = new StatBuilder(this);
         const result = builder
-            .takeDamage(damage)
+            .takeDamage(damage, ignoreDefence)
             .build();
 
         const newCharacter = this.cloneWith({stats: result.stats});
@@ -101,12 +135,12 @@ export class Character {
     }
 
     modifyEnergy<T extends Named>(amount: number, source: T | null, type: 'spend' | 'recover'): Character {
+
         const builder = new StatBuilder(this);
         const result = builder
             .modifyEnergy(amount * (type === 'spend' ? -1 : 1))
             .build();
-
-        if (this.stats.energy === result.stats.energy) {
+         if (this.stats.energy === result.stats.energy) {
             return this;
         }
 
@@ -212,10 +246,20 @@ export class Character {
 
 
     getEquipment() {
-        console.log(this.equipment);
         return this.equipment.getEquippedItems();
 
     }
+
+    reset(): Character {
+        // Reset character to initial state
+        return new Character({
+            ...this,
+            stats: this.baseStats.cloneWith({}),
+            chosenActions: []
+        });
+        // Reset any other character-specific states
+    }
+
 }
 
 export function

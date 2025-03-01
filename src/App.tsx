@@ -66,7 +66,7 @@ export const App: React.FC = () => {
         }
 
     }
-    const handlePostBattle = () => {setGameStage('POST_BATTLE');}
+
     const handlePrepareNextBattle = (selectedCard) => {
         const nextBattle = gameManager.loadNextBattle();
 
@@ -74,11 +74,25 @@ export const App: React.FC = () => {
         setGameStage('PREPARE');
     }
 
-    // Trigger victory or defeat based on game state
+    // Trigger.ts victory or defeat based on game state
     const prepareNextBattle = () => {
         setGameStage('PREPARE');
     };
 
+
+    const handleGameReset = () => {
+        gameManager.resetGame();
+        setBattleManager(gameManager.battleManager);
+        setGameStage('PREPARE');
+    };
+
+    const handlePostBattle = () => {
+        if (battleManager && !battleManager.isPlayerVictorious()) {
+            handleGameReset();
+        } else {
+            setGameStage('POST_BATTLE');
+        }
+    };
 
     return (
         <BattleManagerProvider manager={battleManager}>

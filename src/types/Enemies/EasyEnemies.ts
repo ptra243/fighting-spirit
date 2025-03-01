@@ -20,12 +20,12 @@ export const goblinGrunt = createCharacter(
     0,   // Health Regen
     1,   // Energy Regen
     [
-        createAction("Rusty Stab", [createAttack("Rusty Stab", 3, 0)], 1), // Low energy cost stab
+        createAction("Rusty Stab", [createAttack("Rusty Stab", 3)], 1), // Low energy cost stab
         createAction("Scavenge", [createRecharge("Scavenge", 2)], 2),     // Recharge energy
         createAction(
             "Weak Kick",
             [
-                createAttack("Weak Kick", 2, 0),                             // Light attack
+                createAttack("Weak Kick", 2),                             // Light attack
                 createDebuff("Defense Down", BuffStat.Defense, -1, 1),       // Reduce defense for 1 turn
             ],
             3
@@ -45,7 +45,7 @@ export const goblinRogue = createCharacter(
         createAction(
             "Poison Blade",
             [
-                createAttack("Blade Attack", 1, 0),                          // Light attack
+                createAttack("Blade Attack", 1),                          // Light attack
                 createDamageOverTime("Poison", 1, 2),                        // Poison effect for 2 turns
             ],
             2
@@ -57,7 +57,7 @@ export const goblinRogue = createCharacter(
         ),
         createAction(
             "Quick Stab",
-            [createAttack("Quick Stab", 3, 0)],                              // Moderate attack
+            [createAttack("Quick Stab", 3)],                              // Moderate attack
             2
         )
     ]

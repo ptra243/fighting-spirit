@@ -12,64 +12,53 @@ export enum AttackScalingStat {
 
 export class AttackBehaviour implements IAttackBehaviour {
     name: string;
-    chargeTurns: number; // Number of turns required to charge
-    isPrecharge: boolean;
     damage: number; // Damage dealt when charged is complete
     scale: AttackScalingStat;
     scaledPercent: number;
+    ignoreDefence: boolean
 
-    constructor(name: string, chargeTurns: number, damage: number, isPreCharge: boolean = true, scale: AttackScalingStat = AttackScalingStat.Attack, scaledPercent: number = 100) {
+    constructor(name: string, damage: number, scale: AttackScalingStat = AttackScalingStat.Attack, scaledPercent: number = 100, ignoreDefence: boolean = false) {
         this.name = name;
-        this.chargeTurns = chargeTurns;
         this.damage = damage;
-        this.isPrecharge = isPreCharge;
         this.scale = scale;
         this.scaledPercent = scaledPercent;
+        this.ignoreDefence = ignoreDefence;
     }
 
     execute(character: Character, target: Character): [Character, Character] {
-        // If the character is not charging, start the charging process
-        if (!character.isCharging && this.chargeTurns > 0) {
-            const updatedCharacter = character.cloneWith({
-                isCharging: true,
-                chargeTurns: this.chargeTurns,
-            });
-            return [updatedCharacter, target];
-        }
+        // Determine which stat to scale with
+        const scaledStat = this.getScaledStat(character);
 
-        // If charging is complete, perform the attack
-        if ((character.isCharging && character.chargeTurns <= 1) || this.chargeTurns === 0) {
+        const scaledDamage = Math.floor(scaledStat * (this.scaledPercent / 100));
 
-            // Determine which stat to scale with
-            const scaledStat = this.getScaledStat(character);
+        // Calculate damage
+        //get rid of (scaledStat * (1 + this.scaledPercent * 0.1))
+        const totalDamage = this.damage + scaledDamage;
 
-            const scaledDamage = Math.floor(scaledStat * (this.scaledPercent / 100));
+        // Apply damage to the target
+        let updatedTarget = target.takeDamage(totalDamage, character, this.ignoreDefence);
 
-            // Calculate damage
-            //get rid of (scaledStat * (1 + this.scaledPercent * 0.1))
-            const totalDamage = this.damage + scaledDamage;
+        let updatedCharacter = character;
 
-            // Apply damage to the target
-            const updatedTarget = target.takeDamage(totalDamage,character);
+        // Execute onDamageDealt triggers for the attacker
+        [updatedCharacter, updatedTarget] = character.triggerManager.executeTriggers(
+            'onDamageDealt',
+            updatedCharacter,
+            updatedTarget,
+            { totalDamage }
+        );
 
-            // Reset character charging state
-            const updatedCharacter = character.cloneWith({
-                isCharging: false,
-                chargeTurns: 0  // Add this line to reset charge turns
-            });
+        // Execute onDamageTaken triggers for the target
+        [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers(
+            'onDamageTaken',
+            updatedTarget,
+            updatedCharacter,
+            { totalDamage }
+        );
 
 
-            // Return updated states of both character and target
-            return [updatedCharacter, updatedTarget];
-        }
-
-        // Continue charging
-        const updatedCharacter = character.cloneWith({
-            chargeTurns: character.chargeTurns - character.stats.chargesPerTurn,
-        });
-
-        // Return updated character with one less charge turn
-        return [updatedCharacter, target];
+        // Return updated states of both character and target
+        return [updatedCharacter, updatedTarget];
 
     }
 
@@ -92,11 +81,6 @@ export class AttackBehaviour implements IAttackBehaviour {
 
     getDescription(): string {
         let description = '';
-
-        // Add charge information if there are charge turns
-        if (this.chargeTurns > 0) {
-            description += `Charge ${this.chargeTurns}, `;
-        }
 
         // Add damage and scaling information
         description += `Deal ${this.damage} `;

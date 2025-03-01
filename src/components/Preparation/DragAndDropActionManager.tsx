@@ -18,7 +18,7 @@ export default function DragAndDropActions({requiredCards}) {
     const character = battleManager.player;
     const [selectedActions, setSelectedActions] = useState(character.chosenActions);
     const [availableActions, setAvailableActions] = useState(
-        character.actions.filter(action =>
+        character.actions.filter(action => action &&
             !character.chosenActions.some(chosen => chosen.id === action.id)
         )
     );

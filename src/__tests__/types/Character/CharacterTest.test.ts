@@ -48,7 +48,7 @@ describe('Character', () => {
                 defence: 5
             }),
             actions: [
-                createAction("Basic Slash", [createAttack("Basic Slash", 1, 0)], 1)
+                createAction("Basic Slash", [createAttack("Basic Slash", 1)], 1)
             ]
         });
         source = new Character({
@@ -59,7 +59,7 @@ describe('Character', () => {
                 defence: 5
             }),
             actions: [
-                createAction("Basic Slash", [createAttack("Basic Slash", 1, 0)], 1)
+                createAction("Basic Slash", [createAttack("Basic Slash", 1)], 1)
             ]
         });
     });

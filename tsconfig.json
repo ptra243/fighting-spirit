@@ -9,5 +9,5 @@
     "jsx": "react"
   },
   "include": ["src"],          // Include your source files (or adjust to match your folder structure)
-  "exclude": ["node_modules"]  // Exclude node_modules folder
+  "exclude": ["src/node_modules"]  // Exclude node_modules folder
 }

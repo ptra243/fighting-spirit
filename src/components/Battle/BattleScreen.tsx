@@ -25,10 +25,26 @@ export const BattleScreen: React.FC<{
             onBattleEnd();
         }
     }, [battleManager.getBattleState()]);
+    // Add state to track pause status
+    const [isPaused, setIsPaused] = useState(false);
+
+    const handlePauseToggle = () => {
+        battleManager.togglePause();
+        setIsPaused(battleManager.isPausedState());
+    };
 
     return (
         <div className="battle-screen">
             <div className="battle-layout">
+                <div className="battle-controls">
+                    <button
+                        className="pause-button"
+                        onClick={handlePauseToggle}
+                    >
+                        {isPaused ? "Resume" : "Pause"}
+                    </button>
+                </div>
+
                 <div className="player-side">
                     <BuffsList character={playerState}/>
                     <ActionsList isPlayer={true}

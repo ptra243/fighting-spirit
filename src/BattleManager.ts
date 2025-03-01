@@ -33,7 +33,7 @@ export interface Named {
 export class BattleManager {
     static readonly CONFIG: BattleConfig = {
         MAX_TURNS: 20,
-        TURN_INTERVAL_MS: 250,
+        TURN_INTERVAL_MS: 100,
         STARTING_REQUIRED_ACTIONS: 3
     };
 
@@ -53,6 +53,8 @@ export class BattleManager {
 
     // Battle control
     private battleInterval: NodeJS.Timeout | null;
+    private isPaused: boolean = false;
+
 
     constructor(player: Character, ai: Character, round: number) {
         const callbacks: LogCallbacks = {
@@ -149,9 +151,46 @@ export class BattleManager {
         });
 
     }
+    // Add these new methods
+    public pauseBattle(): void {
+        if (this.battleState === BattleState.IN_PROGRESS) {
+            this.isPaused = true;
+            this.clearExistingBattleInterval();
+            this.addBattleLog("Battle paused");
+            this.notify();
+        }
+    }
+
+    public resumeBattle(): void {
+        if (this.battleState === BattleState.IN_PROGRESS && this.isPaused) {
+            this.isPaused = false;
+            this.startBattleLoop();
+            this.addBattleLog("Battle resumed");
+            this.notify();
+        }
+    }
+
+    public togglePause(): void {
+        if (this.isPaused) {
+            this.resumeBattle();
+        } else {
+            this.pauseBattle();
+        }
+    }
+
+    public isPausedState(): boolean {
+        return this.isPaused;
+    }
+
 
     private startBattleLoop(): void {
+
         this.battleInterval = setInterval(() => {
+            // Check pause state first
+            if (this.isPaused) {
+                return;
+            }
+
             if (this.isAnyCharacterDefeated() || this.hasReachedMaxTurns()) {
                 this.endBattle();
             }
@@ -159,6 +198,7 @@ export class BattleManager {
 
             // Check victory conditions, etc.
         }, BattleManager.CONFIG.TURN_INTERVAL_MS);
+
 
     }
 

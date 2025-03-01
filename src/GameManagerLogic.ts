@@ -113,4 +113,15 @@ export class GameManager {
     }
 
 
+    resetGame(): void {
+        // Reset game state
+        this.currentBattle = 0;
+        this.player.character = this.player.character.reset(); // Make sure Character class has a reset method
+        this.battleManager?.cleanup();
+        this.battleManager = null;
+
+        // Load first battle
+        this.loadNextBattle();
+    }
+
 }

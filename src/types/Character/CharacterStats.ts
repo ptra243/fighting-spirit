@@ -1,7 +1,4 @@
-﻿import {Character} from "./Character";
-import {BuffBehaviour, BuffStat} from "../Actions/Behaviours/BuffBehaviour";
-
-export class CharacterStats {
+﻿export class CharacterStats {
     readonly hitPoints: number;
     readonly maxHitPoints: number;
     readonly attack: number;
@@ -12,8 +9,8 @@ export class CharacterStats {
     readonly chargesPerTurn: number;
     readonly energyRegen: number
     readonly hpRegen: number;
-    speed: number;        // Base speed of the character
-    actionCounter: number; // Current progress towards next action (0-100)
+    readonly speed: number;        // Base speed of the character
+    readonly actionCounter: number; // Current progress towards next action (0-100)
 
 
     constructor(stats: Partial<CharacterStats>) {
@@ -28,7 +25,8 @@ export class CharacterStats {
         this.hpRegen = stats.hpRegen ?? 0;
         this.speed = stats.speed ?? 25;
         this.actionCounter = stats.actionCounter ?? 0;
-
+        this.chargesPerTurn = stats.chargesPerTurn ?? 1;
+      
     }
 
     // Immutable method for taking damage
@@ -106,6 +104,24 @@ export class CharacterStats {
             actionCounter: 0
         });
     }
+
+
+    public add(other: CharacterStats): CharacterStats {
+        return new CharacterStats({
+            hitPoints: this.hitPoints + other.hitPoints,
+            maxHitPoints: this.maxHitPoints + other.maxHitPoints,
+            attack: this.attack + other.attack,
+            defence: this.defence + other.defence,
+            shield: this.shield + other.shield,
+            energy: Math.min(this.maxEnergy, this.energy + other.energy),
+            maxEnergy: this.maxEnergy + other.maxEnergy,
+            energyRegen: this.energyRegen + other.energyRegen,
+            hpRegen: this.hpRegen + other.hpRegen,
+            speed: this.speed + other.speed,
+            actionCounter: this.actionCounter // Don't add action counters
+        });
+    }
+
 
 
 }
