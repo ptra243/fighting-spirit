@@ -296,7 +296,7 @@
 .section-header {
   color: var(--dark-wood);
   margin: 0 0 16px 0;
-  padding-bottom: 8px;
+  padding: 8px;
   border-bottom: 2px solid var(--medium-wood);
   font-size: 1.3em;
 }

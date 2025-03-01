@@ -1,8 +1,7 @@
-﻿import React, { useState } from 'react';
+﻿import React, {useState} from 'react';
 import '../../styles/PreparationScreenStyles.css';
-import { useBattleManager } from "../../context/BattleManagerContext";
-import { ActionSelectionPreparation } from "./ActionSelectionPreparation";
-import { EquipmentSection } from './EquipmentSection';
+import {useBattleManager} from "../../context/BattleManagerContext";
+import {EquipmentSection} from './EquipmentSection';
 import {
     ExpandableState,
     PreparationScreenProps,
@@ -10,10 +9,11 @@ import {
 } from '../../types/ui/Preparation/StatInterfaceDefinitions';
 import {StatItem} from "./StatItemComponent";
 import {EnemyPreview} from "./EnemyPreviewComponent";
+import DragAndDropActions from "./DragAndDropActionManager";
 
-export const PreparationScreen: React.FC<PreparationScreenProps> = ({ onStartBattle }) => {
-    const { battleManager } = useBattleManager();
-    const { player: character, ai: aiStats } = battleManager;
+export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
+    const {battleManager} = useBattleManager();
+    const {player: character, ai: aiStats} = battleManager;
 
     const [expandedSections, setExpandedSections] = useState<ExpandableState>({
         stats: false,
@@ -24,18 +24,19 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({ onStartBat
         errors: null,
         hasAttempted: false
     });
+    let requiredCards: number = battleManager.getRound();
+    requiredCards +=2;
 
-    const requiredCards = battleManager.getRound() + 2;
 
     const handleStartBattle = () => {
-        setValidationState(prev => ({ ...prev, hasAttempted: true }));
+        setValidationState(prev => ({...prev, hasAttempted: true}));
         const errors = battleManager.canStartBattle();
 
         if (errors.length === 0) {
-            setValidationState(prev => ({ ...prev, errors: null }));
+            setValidationState(prev => ({...prev, errors: null}));
             onStartBattle();
         } else {
-            setValidationState(prev => ({ ...prev, errors }));
+            setValidationState(prev => ({...prev, errors}));
         }
     };
 
@@ -56,12 +57,12 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({ onStartBat
                     <div className="stats-section">
                         <h3 className="section-header">Character Statistics</h3>
                         <div className="stats-grid">
-                            <StatItem label="HP" value={character.stats.maxHitPoints} />
-                            <StatItem label="Attack" value={character.stats.attack} />
-                            <StatItem label="Defence" value={character.stats.defence} />
-                            <StatItem label="Starting Energy" value={character.stats.energy} />
-                            <StatItem label="Energy Regeneration" value={character.stats.energyRegen} />
-                            <StatItem label="HP Regeneration" value={character.stats.hpRegen} />
+                            <StatItem label="HP" value={character.stats.maxHitPoints}/>
+                            <StatItem label="Attack" value={character.stats.attack}/>
+                            <StatItem label="Defence" value={character.stats.defence}/>
+                            <StatItem label="Starting Energy" value={character.stats.energy}/>
+                            <StatItem label="Energy Regeneration" value={character.stats.energyRegen}/>
+                            <StatItem label="HP Regeneration" value={character.stats.hpRegen}/>
                         </div>
 
                         <div className="expandable-section">
@@ -71,17 +72,12 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({ onStartBat
                             >
                                 {expandedSections.equipment ? '▼' : '▶'} Equipment
                             </button>
-                            {expandedSections.equipment && <EquipmentSection equipment={character.getEquipment()} />}
+                            {expandedSections.equipment && <EquipmentSection equipment={character.getEquipment()}/>}
                         </div>
                     </div>
 
                     <div className="action-selection">
                         <h2>Select Your Actions</h2>
-                        <div className="cards-required-section">
-                            <p>Required Cards: {requiredCards}</p>
-                            <p>Selected Cards: {character.chosenActions.length}</p>
-                        </div>
-
                         {validationState.errors && (
                             <div className="error-message">
                                 <ul>
@@ -91,12 +87,14 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({ onStartBat
                                 </ul>
                             </div>
                         )}
-                        <ActionSelectionPreparation />
+                        <div className="action-buttons">
+                            <DragAndDropActions requiredCards={requiredCards}></DragAndDropActions>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <EnemyPreview aiStats={aiStats} onStartBattle={handleStartBattle} />
+            <EnemyPreview aiStats={aiStats} onStartBattle={handleStartBattle}/>
         </div>
     );
 };

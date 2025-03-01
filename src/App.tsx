@@ -15,6 +15,7 @@ import {CharacterStats} from "./types/Character/CharacterStats";
 import {BattleScreen} from "./components/Battle/BattleScreen";
 import {Player} from "./types/Player/Player";
 import {Weapon} from "./types/Equipment/EquipmentClassHierarchy";
+import {BattleEndScreen} from "./components/BattleEndScreen/BattleEndScreen";
 
 
 let character = new Character({
@@ -65,9 +66,10 @@ export const App: React.FC = () => {
         }
 
     }
-    const handlePostBattle = () => setGameStage('POST_BATTLE');
-    const handlePrepareNextBattle = () => {
+    const handlePostBattle = () => {setGameStage('POST_BATTLE');}
+    const handlePrepareNextBattle = (selectedCard) => {
         const nextBattle = gameManager.loadNextBattle();
+
         setBattleManager(nextBattle);
         setGameStage('PREPARE');
     }
@@ -88,7 +90,12 @@ export const App: React.FC = () => {
 
             {gameStage === 'BATTLE' && (
                 <BattleScreen
-                    onBattleEnd={handlePrepareNextBattle}
+                    onBattleEnd={handlePostBattle}
+                />
+            )}
+            {gameStage === 'POST_BATTLE' && (
+                <BattleEndScreen
+                    onContinue={handlePrepareNextBattle}
                 />
             )}
         </BattleManagerProvider>

@@ -12,7 +12,8 @@ import {ActionCard} from "../Cards/ActionCardComponent";
 import {useBattleManager} from "../../context/BattleManagerContext";
 
 
-export default function DragAndDropActions() {
+export default function DragAndDropActions({requiredCards}) {
+    const label = `Selected Actions: ${requiredCards} cards required`;
     const {battleManager} = useBattleManager();
     const character = battleManager.player;
     const [selectedActions, setSelectedActions] = useState(character.chosenActions);
@@ -122,7 +123,7 @@ export default function DragAndDropActions() {
             <div className="drag-and-drop-container">
                 <div className="drag-and-drop-content">
                     {/* Selected Actions Area */}
-                    <DroppableArea id="selectedActions" label="Selected Actions">
+                    <DroppableArea id="selectedActions" label={label}>
                         {selectedActions.map((action) => (
                             <DraggableItem key={action.id} item={action}/>
                         ))}

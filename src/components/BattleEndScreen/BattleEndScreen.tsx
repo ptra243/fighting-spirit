@@ -1,90 +1,112 @@
-﻿// components/BattleEndScreen.tsx
-import {Action} from "../../types/Actions/Action";
-
-// BattleEndScreen.tsx
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import "../../styles/BattleEndScreenStyles.css";
-import { Character } from "../../types/Character/Character";
-import { BattleLog } from "../../types/Battle/BattleLog";
 import { ActionCard } from '../Cards/ActionCardComponent';
+import { Action } from "../../types/Actions/Action";
+import {StatItem} from "../Preparation/StatItemComponent";
+import {useBattleManager} from "../../context/BattleManagerContext";
 
 interface BattleEndScreenProps {
-    winner: Character;
-    battleLog: BattleLog;
     onContinue: (selectedCard?: Action) => void;
-    isVictorious: boolean;
-    opponent: Character; // Add this prop to access opponent's cards
 }
 
-export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({
-                                                                    winner,
-                                                                    battleLog,
-                                                                    onContinue,
-                                                                    isVictorious,
-                                                                    opponent
-                                                                }) => {
+export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({ onContinue }) => {
+    const { battleManager,setPlayerActions, aiState, } = useBattleManager();
     const [selectedCard, setSelectedCard] = useState<Action | null>(null);
+
+    const battleLog = battleManager.getBattleLog();
     const summary = battleLog.getSummary();
+    const winner = battleManager.getWinner();
+    const opponent =aiState;
+    const isVictorious = battleManager.isPlayerVictorious();
 
     const handleContinue = () => {
+        let playerActions = battleManager.player.actions;
+        playerActions.push(selectedCard);
+        setPlayerActions(playerActions)
         onContinue(selectedCard || undefined);
+    };
+
+
+    const [expandedDetails, setExpandedDetails] = useState(false);
+
+    const toggleDetails = () => {
+        setExpandedDetails(prev => !prev);
     };
 
     return (
         <div className="battle-end-screen">
-            <div className={`battle-banner ${isVictorious ? 'victory' : 'defeat'}`}>
-                {isVictorious ? 'VICTORY!' : 'DEFEAT!'}
-            </div>
+            <div className="main-content">
+                <div className="player-section">
+                    <div className={`battle-banner ${isVictorious ? 'victory' : 'defeat'}`}>
+                        <h1>{isVictorious ? 'VICTORY!' : 'DEFEAT!'}</h1>
+                    </div>
 
-            <h2>{winner.name} Wins!</h2>
-
-            {isVictorious && (
-                <div className="card-selection">
-                    <h3>Choose a card to add to your deck</h3>
-                    <div className="opponent-cards">
-                        {opponent.actions.map((card, index) => (
-                            <div
-                                key={index}
-                                className={`card-option ${selectedCard === card ? 'selected' : ''}`}
-                                onClick={() => setSelectedCard(card)}
-                            >
-                                <ActionCard action={card} ></ActionCard>
-
+                    {isVictorious && (
+                        <div className="action-selection">
+                            <h3 className="section-header">Choose Your Reward</h3>
+                            <div className="selection-content">
+                                <div className="cards-grid">
+                                    {opponent.actions.map((card, index) => (
+                                        <div
+                                            key={index}
+                                            className={`card-container ${selectedCard === card ? 'selected' : ''}`}
+                                            onClick={() => setSelectedCard(card)}
+                                        >
+                                            <ActionCard action={card} />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="selection-sidebar">
+                                    <p>{selectedCard ? 'Card Selected' : 'No Card Selected'}</p>
+                                    <button className="continue-button" onClick={handleContinue}>
+                                        Continue
+                                    </button>
+                                </div>
                             </div>
-                        ))}
+                        </div>
+                    )}
+
+                    <div className="expandable-section">
+                        <button className="expand-button" onClick={toggleDetails}>
+                            {expandedDetails ? '▼' : '▶'} Battle Details
+                        </button>
+                        {expandedDetails && (
+                            <div className="battle-details">
+                                <h3 className="section-header">Battle Summary</h3>
+                                <div >
+                                    <div className="stats-grid">
+                                        <StatItem label="Total Turns" value={summary.totalTurns} />
+                                        <StatItem label="Total Damage" value={summary.totalDamageDealt} />
+                                        <StatItem label="Total Healing" value={summary.totalHealing} />
+                                        <StatItem label="Max Damage/Turn" value={summary.mostDamageInOneTurn} />
+                                        <StatItem label="Longest Buff" value={summary.longestBuff} />
+                                        {summary.killingBlow && (
+                                            <div className="killing-blow-stat">
+                                                <span className="label">Killing Blow:</span>
+                                                <span className="value">{summary.killingBlow.message}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="battle-log-section">
+                                    <h3 className="section-header">Battle Log</h3>
+                                    <div className="battle-log">
+                                        {battleLog.getEntries().map((entry, index) => (
+                                            <div key={index} className={`log-entry ${entry.type}`}>
+                                                <span className="turn">Turn {entry.turn}</span>
+                                                <span className="message">{entry.message}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            )}
-
-            <div className="battle-summary">
-                <div className="summary-stats">
-                    <div>Total Turns: {summary.totalTurns}</div>
-                    <div>Total Damage: {summary.totalDamageDealt}</div>
-                    <div>Total Healing: {summary.totalHealing}</div>
-                    <div>Most Damage in One Turn: {summary.mostDamageInOneTurn}</div>
-                    <div>Longest Buff Duration: {summary.longestBuff}</div>
-                    {summary.killingBlow && (
-                        <div>Killing Blow: {summary.killingBlow.message}</div>
-                    )}
-                </div>
             </div>
-
-            <div className="battle-log">
-                {battleLog.getEntries().map((entry, index) => (
-                <div key={index} className={`log-entry ${entry.type}`}>
-                    <span className="turn">Turn {entry.turn}</span>
-                    <span className="message">{entry.message}</span>
-                </div>
-            ))}
-            </div>
-
-            <button
-                className="continue-button"
-                onClick={handleContinue}
-                disabled={isVictorious && !selectedCard}
-            >
-                {isVictorious ? 'Choose Card & Continue' : 'Continue'}
-            </button>
         </div>
     );
 };
+
+
+

@@ -218,3 +218,103 @@
         transform: translateY(0);
     }
 }
+
+/* Add to BattleEndScreenStyles.css */
+.battle-end-layout {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--medium-wood);
+    background-image: repeating-linear-gradient(
+            120deg,
+            rgba(0,0,0,0.1) 0px,
+            transparent 2px,
+            rgba(0,0,0,0.1) 4px
+    );
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.3);
+    overflow-y: auto;
+}
+
+.battle-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.battle-result {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.battle-result.victory {
+    color: var(--success-color, #2ecc71);
+}
+
+.battle-result.defeat {
+    color: var(--error-color, #e74c3c);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.stat-item {
+    background: var(--parchment);
+    padding: 1rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--dark-wood);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.card-option {
+    background: var(--parchment);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+}
+
+.card-option:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card-option.selected {
+    border-color: var(--dark-wood);
+    background: var(--light-wood);
+}
+
+.battle-log {
+    background: var(--parchment);
+    padding: 1rem;
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--medium-wood);
+    color: var(--dark-text);
+}
+
+.log-entry .turn {
+    font-weight: bold;
+    color: var(--dark-wood);
+}

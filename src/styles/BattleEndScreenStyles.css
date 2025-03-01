@@ -13,17 +13,38 @@
     padding: 40px;
     overflow-y: auto;
     backdrop-filter: blur(5px);
+
+}
+
+.main-content {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .battle-banner {
-    font-size: 3.5rem;
+    font-size: 2rem; /* Reduced from 3.5rem */
     font-weight: bold;
-    margin: 2rem 0;
-    padding: 1.5rem 3rem;
-    border-radius: 1rem;
+    margin: 1rem 0; /* Reduced from 2rem */
+    padding: 1rem 2rem; /* Reduced from 1.5rem 3rem */
+    border-radius: 0.75rem;
     animation: zoomIn 0.5s ease-out;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
 }
+
+.battle-banner h1 {
+    font-size: 2.5rem; /* Control the size of the VICTORY/DEFEAT text */
+    margin-bottom: 0.5rem;
+}
+
+.battle-banner h2 {
+    font-size: 1.8rem; /* Control the size of the winner text */
+}
+
 
 .battle-summary {
     background: rgba(245, 245, 245, 0.1);
@@ -115,4 +136,125 @@
 .card-option.selected {
     border-color: #ffd700;
     background: rgba(255, 215, 0, 0.1);
+}
+
+/* Update the cards grid to match preparation screen */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.card-container {
+    position: relative;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.card-container:hover {
+    transform: translateY(-4px);
+}
+
+.card-container.selected {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Add some spacing for the action selection section */
+.action-selection {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: rgba(245, 245, 245, 0.05);
+    border-radius: 12px;
+}
+
+.cards-required-section {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.cards-required-section p {
+    margin: 0.5rem 0;
+}
+
+.battle-banner.victory {
+    background: linear-gradient(135deg, #2c5e1e, #1e421e);
+    color: #7dff7d;
+    border: 2px solid #4caf50;
+    text-shadow: 0 0 10px rgba(125, 255, 125, 0.5);
+}
+
+.battle-banner.victory h1 {
+    color: #90ff90;
+    text-shadow:
+            0 0 10px rgba(125, 255, 125, 0.7),
+            0 0 20px rgba(125, 255, 125, 0.5);
+}
+
+.battle-banner.victory h2 {
+    color: #7dff7d;
+}
+
+.battle-banner.defeat {
+    background: linear-gradient(135deg, #5e1e1e, #421e1e);
+    color: #ff7d7d;
+    border: 2px solid #af4c4c;
+    text-shadow: 0 0 10px rgba(255, 125, 125, 0.5);
+}
+
+.battle-banner.defeat h1 {
+    color: #ff9090;
+    text-shadow:
+            0 0 10px rgba(255, 125, 125, 0.7),
+            0 0 20px rgba(255, 125, 125, 0.5);
+}
+
+.battle-banner.defeat h2 {
+    color: #ff7d7d;
+}
+
+.battle-details {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.battle-log-section {
+    margin-top: 2rem;
+    width: 100%;
+}
+.battle-log {
+    background: var(--light-wood);
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.log-entry {
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry .turn {
+    min-width: 80px;
+}
+
+.log-entry .message {
+    color: black;
+    flex: 1;
 }

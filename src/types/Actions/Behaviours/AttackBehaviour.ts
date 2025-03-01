@@ -50,7 +50,7 @@ export class AttackBehaviour implements IAttackBehaviour {
             const totalDamage = this.damage + scaledDamage;
 
             // Apply damage to the target
-            const updatedTarget = target.takeDamage(totalDamage,target);
+            const updatedTarget = target.takeDamage(totalDamage,character);
 
             // Reset character charging state
             const updatedCharacter = character.cloneWith({

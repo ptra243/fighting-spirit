@@ -20,19 +20,11 @@ export const BattleScreen: React.FC<{
         setPlayerActions
     } = useBattleManager();
 
-    const handleContinue = (selectedCard: Action) => {
-        // Logic to go back to preparation screen
-        let playerActions = battleManager.player.actions;
-        playerActions.push(selectedCard);
-        setPlayerActions(playerActions)
-        if (battleManager.player.stats.hitPoints > battleManager.ai.stats.hitPoints) {
-            // Increment round if player won
-            // You'll need to implement this method in BattleManager
+    useEffect(() => {
+        if (battleManager.getBattleState() === BattleState.ENDED) {
             onBattleEnd();
         }
-        // Navigate to preparation screen
-        // Implementation depends on your routing solution
-    };
+    }, [battleManager.getBattleState()]);
 
     return (
         <div className="battle-screen">
@@ -58,14 +50,6 @@ export const BattleScreen: React.FC<{
                     />
                 </div>
             </div>
-            {battleManager.getBattleState() === BattleState.ENDED && (
-                <BattleEndScreen
-                    opponent={battleManager.ai}
-                    isVictorious={battleManager.isPlayerVictorious()}
-                    winner={battleManager.getWinner()}
-                    battleLog={battleManager.getBattleLog()}
-                    onContinue={handleContinue}/>
-            )}
         </div>
     );
 };
