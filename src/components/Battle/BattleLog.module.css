@@ -1,0 +1,47 @@
+﻿
+.battleLog {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    border-radius: 4px;
+    height: 200px;
+    margin: 10px;
+    padding: 10px;
+}
+
+.battleLogContent {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #666 #333;
+}
+
+.logEntry {
+    padding: 2px 5px;
+    font-family: monospace;
+    display: flex;
+    gap: 2em;
+    align-items: baseline;
+}
+
+.turnNumber {
+    color: #666;
+    min-width: 40px;
+}
+
+.logValue {
+    font-weight: bold;
+}
+
+/* Scrollbar styling for webkit browsers */
+.battleLogContent::-webkit-scrollbar {
+    width: 8px;
+}
+
+.battleLogContent::-webkit-scrollbar-track {
+    background: #333;
+}
+
+.battleLogContent::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+}

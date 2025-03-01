@@ -1,0 +1,118 @@
+﻿.battle-end-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(30, 30, 30, 0.95); /* Less harsh than pure black */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Changed from center to allow better spacing */
+    z-index: 1000;
+    padding: 40px;
+    overflow-y: auto;
+    backdrop-filter: blur(5px);
+}
+
+.battle-banner {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 2rem 0;
+    padding: 1.5rem 3rem;
+    border-radius: 1rem;
+    animation: zoomIn 0.5s ease-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.battle-summary {
+    background: rgba(245, 245, 245, 0.1);
+    padding: 25px;
+    border-radius: 12px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+    color: #ffffff;
+}
+
+.battle-log {
+    background: rgba(245, 245, 245, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    min-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 800px;
+    margin: 20px 0;
+}
+
+.log-entry {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    display:flex;
+    gap:2em;
+}
+
+.continue-button {
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    background: linear-gradient(145deg, #2a2a2a, #3a3a3a);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.continue-button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #3a3a3a, #4a4a4a);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-selection {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(245, 245, 245, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.opponent-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.card-option {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.card-option:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.card-option.selected {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}

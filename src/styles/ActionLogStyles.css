@@ -1,0 +1,19 @@
+﻿.action-log {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.action-item {
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.action-item.expanded small {
+  display: block;
+}
+
+.action-item:not(.expanded) small {
+  display: none;
+}

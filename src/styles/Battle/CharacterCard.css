@@ -1,0 +1,21 @@
+﻿.speed-bar {
+    background: linear-gradient(90deg, #4a90e2, #357abd);
+    color: white;
+    text-align: right;
+    padding-right: 8px;
+}
+
+.bar-container {
+    margin-bottom: 8px;
+}
+
+.bar-background {
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 20px;
+    transition: width 250ms linear;
+}

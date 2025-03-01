@@ -1,0 +1,13 @@
+﻿{
+  "compilerOptions": {
+    "target": "es2019",       // Specify ES6 as the JavaScript output target
+    "lib": ["es2019", "dom"], // Include libraries for ES6 and browser APIs
+    "module": "commonjs",     // Use CommonJS module system (usually used in Node.js projects)
+    "strict": false,           // Enable strict type-checking
+    "esModuleInterop": true,
+    // Interoperability with ES modules (like importing npm packages)
+    "jsx": "react"
+  },
+  "include": ["src"],          // Include your source files (or adjust to match your folder structure)
+  "exclude": ["node_modules"]  // Exclude node_modules folder
+}

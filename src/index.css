@@ -1,0 +1,161 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.stats-container {
+    width: 20%;
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.log-container {
+    width: 55%;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.stats-panel h2 {
+    margin: 0 0 10px;
+}
+
+.log-panel h2 {
+    margin-bottom: 10px;
+}
+
+.log p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 20px;
+}
+
+.stats-container {
+    width: 25%;
+    background-color: #f4f4f4;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+    margin-top: 10px;
+}
+
+.action-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.selected-action {
+    border: 2px solid #007bff;
+    background-color: #cce5ff;
+}
+
+.action-button:hover {
+    background-color: #e8e8e8;
+}
+
+.stats-panel h2, .stats-panel h3 {
+    margin: 10px 0;
+}
+
+.log-container {
+    width: 45%;
+    background-color: white;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.log-container h2 {
+    margin-bottom: 10px;
+}
+
+.log-container p {
+    font-size: 14px;
+    margin: 0 0 5px;
+}
+.battle-backdrop {
+    background-image: url('images/backdrop.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+}
+
+:root {
+    --dark-wood: #5C4033;
+    --medium-wood: #8B4513;
+    --light-wood: #DEB887;
+    --wood-highlight: #F5DEB3;
+    --parchment: #F5E6D3;
+    --dark-text: #2C1810;
+    /* ... your existing variables ... */
+    --keyword-color: #8b4513; /* A brown shade that fits the wooden theme */
+}
+
+.action-behaviours {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--medium-wood);
+}
+
+.behaviour-line {
+    font-size: 0.9em;
+    color: var(--dark-text);
+    padding: 4px 0;
+    line-height: 1.3;
+}
+.behaviour-line  .keyword {
+    color: var(--keyword-color);
+    font-weight: bold;
+    display: inline; /* Ensure inline display */
+}
+
+.behaviour-line .number {
+    color: #c0392b; /* Red */
+    font-weight: bold;
+    display: inline; /* Ensure inline display */
+}
+
+/* Highlight keywords */
+.behaviour-line strong {
+    color: var(--keyword-color);
+    font-weight: 600;
+}
