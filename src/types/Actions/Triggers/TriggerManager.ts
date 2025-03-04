@@ -1,16 +1,20 @@
-﻿import { Character } from "../../Character/Character";
+﻿import {Character} from "../../Character/Character";
 import {ActionTrigger, TriggerType} from "./Trigger";
+import {Action, IActionBehaviour} from "../Action";
 
 // First, let's define a common trigger management system
 export interface TriggerManager {
     triggers: ActionTrigger[];
+
     addTrigger(trigger: ActionTrigger): void;
+
     removeTrigger(trigger: ActionTrigger): void;
+
     executeTriggers(
         triggerType: TriggerType,
         character: Character,
         target: Character,
-        context?: any
+        context?: Action | IActionBehaviour | number
     ): [Character, Character];
 }
 
@@ -47,10 +51,17 @@ export class BaseTriggerManager implements TriggerManager {
             if (trigger.condition.requirement &&
                 !trigger.condition.requirement(updatedCharacter, updatedTarget)) continue;
 
-            [updatedCharacter, updatedTarget] = trigger.effect.behaviour.execute(
-                updatedCharacter,
-                updatedTarget
-            );
+            if (trigger.effect.execute)
+                [updatedCharacter, updatedTarget] = trigger.effect.execute(
+                    updatedCharacter,
+                    updatedTarget,
+                    context
+                );
+            if (trigger.effect.behaviour)
+                [updatedCharacter, updatedTarget] = trigger.effect.behaviour.execute(
+                    updatedCharacter,
+                    updatedTarget
+                );
         }
 
         return [updatedCharacter, updatedTarget];

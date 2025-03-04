@@ -1,6 +1,7 @@
 ﻿import {Character} from "../../Character/Character";
 import _ from "lodash";
 import {IBuffBehaviour} from "./BehaviourUnion";
+import {TriggerManager} from "../Triggers/TriggerManager";
 
 export enum BuffStat {
     Attack = "attack",
@@ -37,15 +38,39 @@ export class BuffBehaviour implements IBuffBehaviour {
 
     }
 
-    execute(me: Character, other: Character): [Character, Character] {
+    execute(me: Character, other: Character, triggerManager?: TriggerManager): [Character, Character] {
+        let updatedMe = me;
+        let updatedOther = other;
 
-        if (this.isSelfBuff)
-            me.addBuff(this);
-        else
-            other.addBuff(this);
+        let buffToApply = this.clone({});
 
-        // Optionally log this action
-        return [me.cloneWith({}), other.cloneWith({})];
+        // Apply the buff
+        if (this.isSelfBuff) {
+            // Trigger onApplyBuff for self buffs
+            if (triggerManager) {
+                [updatedMe, updatedOther] = triggerManager.executeTriggers(
+                    'onApplyBuff',
+                    updatedMe,
+                    updatedOther,
+                    buffToApply
+                );
+            }
+            updatedMe = me.addBuff(buffToApply);
+        } else {
+            // Trigger onApplyDebuff for enemy buffs
+            if (other.triggerManager) {
+                [updatedMe, updatedOther] = other.triggerManager.executeTriggers(
+                    'onApplyDebuff',
+                    updatedMe,
+                    updatedOther,
+                    buffToApply
+                );
+            }
+            updatedOther = other.addBuff(buffToApply);
+        }
+
+        return [updatedMe, updatedOther];
+
     }
 
     getDescription(): string {

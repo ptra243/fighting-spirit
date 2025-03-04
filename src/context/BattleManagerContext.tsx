@@ -43,9 +43,9 @@ export const BattleManagerProvider: React.FC<{
     const [battleManager, setBattleManager] = useState(manager);
 
     // Update internal battleManager when prop changes
-    useEffect(() => {
-        setBattleManager(manager);
-    }, [manager]);
+    // useEffect(() => {
+    //     setBattleManager(manager);
+    // }, [manager]);
 
     const updateBattleManager = (newManager: BattleManager) => {
         setBattleManager(newManager);
@@ -66,20 +66,26 @@ export const BattleManagerProvider: React.FC<{
         forceUpdate();
     };
 
-
-    const [state, setState] = useState({
-        battleManager: battleManager,
-        playerState: battleManager.player,
-        aiState: battleManager.ai,
-        currentPlayerActionIndex: battleManager.player.currentAction || 0,
-        currentAIActionIndex: battleManager.ai.currentAction || 0,
-        logs: battleManager.getBattleLog(),
+    // Initialize state with the manager
+    const [state, setState] = useState(() => ({
+        battleManager: manager,
+        playerState: manager.player,
+        aiState: manager.ai,
+        currentPlayerActionIndex: manager.player.currentAction || 0,
+        currentAIActionIndex: manager.ai.currentAction || 0,
+        logs: manager.getBattleLog(),
         setBattleManager: updateBattleManager,
-        setPlayer: setPlayer,
+        setPlayer,
         setAi: setAI,
-        setPlayerActions: setPlayerActions,
+        setPlayerActions,
         battleConfig: BattleManager.CONFIG
-    });
+    }));
+
+    // Update internal battleManager when prop changes
+    useEffect(() => {
+        setBattleManager(manager);
+    }, [manager]);
+
 
     const forceUpdate = () => {
         setUpdateVersion(prev => prev + 1);

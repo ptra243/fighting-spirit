@@ -1,5 +1,4 @@
 ﻿import {Character} from "../../Character/Character";
-import _ from "lodash";
 import {IDamageOverTimeBehaviour} from "./BehaviourUnion";
 
 export class DamageOverTimeBehaviour implements IDamageOverTimeBehaviour {

@@ -10,6 +10,7 @@ import {
 import {StatItem} from "./StatItemComponent";
 import {EnemyPreview} from "./EnemyPreviewComponent";
 import DragAndDropActions from "./DragAndDropActionManager";
+import {SoldierAnimation, SoldierSprite} from "../Battle/SoldierSprite";
 
 export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
     const {battleManager} = useBattleManager();
@@ -53,7 +54,11 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
                 <div className="player-section">
                     <h1>{character.name}'s Battle Preparation</h1>
                     <h1>Battle {battleManager.getRound()}</h1>
+                    <div>
+                        {/* First row animation */}
+                        <SoldierSprite animation={SoldierAnimation.IDLE} showDebugControls={true} scale={2} frameHeight={100} frameWidth={100}/>
 
+                    </div>
                     <div className="stats-section">
                         <h3 className="section-header">Character Statistics</h3>
                         <div className="stats-grid">

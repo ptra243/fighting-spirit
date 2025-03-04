@@ -1,6 +1,8 @@
 ﻿import {IAttackBehaviour} from "./BehaviourUnion";
 import {Character} from "../../Character/Character";
 import {CharacterStats} from "../../Character/CharacterStats";
+import {TriggerManager} from "../Triggers/TriggerManager";
+import {update} from "lodash";
 
 export enum AttackScalingStat {
     Attack = "attack",
@@ -25,7 +27,7 @@ export class AttackBehaviour implements IAttackBehaviour {
         this.ignoreDefence = ignoreDefence;
     }
 
-    execute(character: Character, target: Character): [Character, Character] {
+    execute(character: Character, target: Character, triggerManager?: TriggerManager): [Character, Character] {
         // Determine which stat to scale with
         const scaledStat = this.getScaledStat(character);
 
@@ -41,22 +43,25 @@ export class AttackBehaviour implements IAttackBehaviour {
         let updatedCharacter = character;
 
         // Execute onDamageDealt triggers for the attacker
-        [updatedCharacter, updatedTarget] = character.triggerManager.executeTriggers(
-            'onDamageDealt',
-            updatedCharacter,
-            updatedTarget,
-            { totalDamage }
-        );
+        if (triggerManager) {
+            [updatedCharacter, updatedTarget] = triggerManager.executeTriggers(
+                'onDamageDealt',
+                updatedCharacter,
+                updatedTarget,
+                totalDamage
+            );
+            // updatedTarget.triggerManager
 
-        // Execute onDamageTaken triggers for the target
-        [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers(
-            'onDamageTaken',
-            updatedTarget,
-            updatedCharacter,
-            { totalDamage }
-        );
-
-
+        }
+        if (updatedTarget.triggerManager) {
+            // Execute onDamageTaken triggers for the target
+            [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers(
+                'onDamageTaken',
+                updatedTarget,
+                updatedCharacter,
+                totalDamage
+            );
+        }
         // Return updated states of both character and target
         return [updatedCharacter, updatedTarget];
 

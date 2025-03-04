@@ -1,9 +1,39 @@
-﻿// First, define trigger types and interfaces
+﻿
+// First, define trigger types and interfaces
 import {IActionBehaviour} from "../Action";
 import {CharacterStats} from "../../Character/CharacterStats";
 import {Character} from "../../Character/Character";
+import { BuffStat } from "../Behaviours/BuffBehaviour";
 
-export type TriggerType = 'beforeAction'| 'onAttack' | 'onDamageDealt' | 'onDamageTaken' | 'onHeal' | 'onBuff' | 'beforeDamageTaken' | 'afterAction';
+export type TriggerType = 'beforeAction'| 'onAttack' | 'onDamageDealt' | 'onDamageTaken' | 'onHeal' | 'onApplyBuff'| 'onApplyDebuff' | 'beforeDamageTaken' | 'afterAction';
+
+export interface TriggerContext {
+    actionName?: string;
+}
+
+export interface BeforeActionContext extends TriggerContext {
+    attackBonus?: number;
+}
+
+export interface AttackContext extends TriggerContext {
+    damage: number;
+    isCritical?: boolean;
+    damageMultiplier?: number;
+}
+
+export interface DamageContext extends TriggerContext {
+    damage: number;
+    damageType?: string;
+}
+
+export interface BuffContext extends TriggerContext {
+    buff: {
+        amount: number;
+        duration: number;
+        buffType: BuffStat;
+    }
+}
+
 
 export interface TriggerCondition {
     type: TriggerType;
@@ -12,6 +42,7 @@ export interface TriggerCondition {
 }
 
 export interface TriggerEffect {
+    execute: (character: Character, target: Character, context: any) => [Character, Character];
     behaviour: IActionBehaviour;
     // modifiers?: Modifier[];
     scaling?: {

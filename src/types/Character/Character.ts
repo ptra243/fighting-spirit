@@ -30,7 +30,6 @@ export class Character {
     public triggerManager: TriggerManager;
 
 
-
     //buffs and dots
     readonly activeBuffs: BuffBehaviour[]; // Holds active buffs
     readonly activeDOTs: DamageOverTimeBehaviour[]; // Holds active damage-over-time effects
@@ -69,7 +68,7 @@ export class Character {
         this.classes = initialCharacter.classes || [];
         this.triggerManager = new BaseTriggerManager();
 
-        if (initialCharacter.triggerManager.triggers) {
+        if (initialCharacter.triggerManager?.triggers) {
             initialCharacter.triggerManager.triggers.forEach(trigger => this.triggerManager.addTrigger(trigger));
         }
     }
@@ -84,13 +83,13 @@ export class Character {
         return this;
     }
 
-    public levelUpClass(className: string): boolean {
+    public levelUpClass(className: string): Character {
         const classToLevel = this.classes.find(c => c.getName() === className);
         if (classToLevel) {
-            classToLevel.levelUp();
-            return true;
+            return classToLevel.levelUp(this);
+
         }
-        return false;
+        return this;
     }
 
     public getClasses(): CharacterClass[] {
@@ -140,7 +139,7 @@ export class Character {
         const result = builder
             .modifyEnergy(amount * (type === 'spend' ? -1 : 1))
             .build();
-         if (this.stats.energy === result.stats.energy) {
+        if (this.stats.energy === result.stats.energy) {
             return this;
         }
 
@@ -177,11 +176,13 @@ export class Character {
         this.activeBuffs.push(buff.clone({}));
         this.logCallback.battleLog(this, 'buff', buff.amount, this);
         this.logCallback.messageLog(`${this.name} gained ${buff.name}`);
+        return this.cloneWith({});
     }
 
     addDOT(dot: DamageOverTimeBehaviour) {
         this.activeDOTs.push(dot.clone({}));
         this.logCallback?.messageLog(`${dot.name} has been applied to ${this.name}.`);
+        return this.cloneWith({});
     }
 
 
@@ -260,6 +261,12 @@ export class Character {
         // Reset any other character-specific states
     }
 
+    //TODO
+    static createFromClass(classData: CharacterClass): Character {
+        let updatedCharacter = new Character({stats: classData.getStatsForLevel(1)});
+        updatedCharacter.addClass(classData);
+        return updatedCharacter;
+    }
 }
 
 export function

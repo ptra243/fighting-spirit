@@ -41,7 +41,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     width: 45%;
-    box-shadow: var(--card-shadow);
+    /*box-shadow: var(--card-shadow);*/
     transition: all 0.3s ease;
 
 }

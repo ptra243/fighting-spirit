@@ -1,6 +1,7 @@
 ﻿import React, {useEffect, useState} from 'react';
 import "../../styles/CharacterCardStyles.css";
 import {Character} from "../../types/Character/Character";
+import {SoldierSprite} from "../Battle/SoldierSprite";
 
 interface CharacterCardProps {
     character?: Character
@@ -24,7 +25,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({character}) => {
     return (
         <div className="character-card">
             <h2>{character.name}</h2>
-            <img src={spritePath} alt={`${character.name} sprite`} className="character-sprite" />
+
             <div className="character-bar shield-bar">
                 <p>Shield: {stats.shield}</p>
                 <div className="bar-container">

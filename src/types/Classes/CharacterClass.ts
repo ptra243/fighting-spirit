@@ -1,5 +1,6 @@
 ﻿// src/types/Classes/CharacterClass.ts
 import { CharacterStats } from "../Character/CharacterStats";
+import {Character} from "../Character/Character";
 
 export interface ClassStats {
     hitPoints: number;
@@ -13,9 +14,10 @@ export interface ClassStats {
 export abstract class CharacterClass {
     protected readonly name: string;
     protected level: number = 1;
-    protected readonly statsPerLevel: ClassStats;
+    protected readonly statsPerLevel: CharacterStats;
+    description: string;
 
-    protected constructor(name: string, statsPerLevel: ClassStats) {
+    protected constructor(name: string, statsPerLevel: CharacterStats) {
         this.name = name;
         this.statsPerLevel = statsPerLevel;
     }
@@ -28,8 +30,9 @@ export abstract class CharacterClass {
         return this.level;
     }
 
-    public levelUp(): void {
+    public levelUp(character:Character): Character {
         this.level++;
+        return character;
     }
 
     public getStatsForLevel(level: number): CharacterStats {

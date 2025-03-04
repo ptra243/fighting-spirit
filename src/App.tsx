@@ -16,6 +16,10 @@ import {BattleScreen} from "./components/Battle/BattleScreen";
 import {Player} from "./types/Player/Player";
 import {Weapon} from "./types/Equipment/EquipmentClassHierarchy";
 import {BattleEndScreen} from "./components/BattleEndScreen/BattleEndScreen";
+import {GameStage} from "./types/GameStageTypes";
+import {ClassSelectionScreen} from "./components/ClassSelection/ClassSelectionScreen";
+import {TravelScreen} from "./components/Travel/TravelScreen";
+import {BattleManager} from "./BattleManager";
 
 
 let character = new Character({
@@ -27,7 +31,7 @@ let character = new Character({
         energyRegen: 2,
         energy: 1
     }),
-    actions: [basicAttack(), basicAttack(), basicBlock(), knightsValor(), knightsMomentum(), lacerate(), powerStrike()],
+    actions: [basicAttack(), basicAttack(), knightsValor()],
     sprite: 'knight.jpg'
 
 });
@@ -39,19 +43,25 @@ character = character.addEquipment(new Weapon({
 
 const player = new Player(character,10);
 
-const gameManager = new GameManager(player, 10);// new BattleManager(player, ai);
 
 export const App: React.FC = () => {
     const [log] = useState<string[]>([]);
-    const [playerStats] = useState(gameManager.player);
+    const [player, setPlayer] = useState<Player | null>(new Player(character,10));
+    let gm = new GameManager(player, 10);
+    const [gameManager, setGameManager] = useState<GameManager | null>(gm)
     const [battleManager, setBattleManager] = useState(gameManager.battleManager);
 
+    const [gameStage, setGameStage] = useState<GameStage>('PREPARE');
 
-    const [gameStage, setGameStage] = useState<'PREPARE' | 'BATTLE' | 'POST_BATTLE'>('PREPARE');
+
+    console.log('Component rendering, gameStage:', gameStage);
 
 
     // Callback to transition between game stages
     const handleStartBattle = () => {
+
+        console.log("Battle start conditions:", battleManager.canStartBattle());
+
         setGameStage('BATTLE');
         if (battleManager) {
             battleManager.startBattle();
@@ -67,23 +77,18 @@ export const App: React.FC = () => {
 
     }
 
-    const handlePrepareNextBattle = (selectedCard) => {
+    const handleTravel = (selectedCard) => {
         const nextBattle = gameManager.loadNextBattle();
 
         setBattleManager(nextBattle);
-        setGameStage('PREPARE');
+        // setGameStage('TRAVEL');
+        setGameStage('PREPARE')
     }
-
-    // Trigger.ts victory or defeat based on game state
-    const prepareNextBattle = () => {
-        setGameStage('PREPARE');
-    };
-
 
     const handleGameReset = () => {
         gameManager.resetGame();
         setBattleManager(gameManager.battleManager);
-        setGameStage('PREPARE');
+        setGameStage('CLASS_SELECTION');
     };
 
     const handlePostBattle = () => {
@@ -94,8 +99,34 @@ export const App: React.FC = () => {
         }
     };
 
+
+    const handleClassSelection = (character: Character) => {
+        const newPlayer = new Player(character, 10); // Starting gold
+        setPlayer(newPlayer);
+        setGameStage('TRAVEL');
+    };
+
+    const handleTravelComplete = (updatedPlayer: Player) => {
+        setPlayer(updatedPlayer);
+        // const gameManager = new GameManager(updatedPlayer, 10);
+        // setGameManager(gameManager);
+        setGameStage('PREPARE');
+    };
+
+
     return (
         <BattleManagerProvider manager={battleManager}>
+            {/*{gameStage === 'CLASS_SELECTION' && (*/}
+            {/*    <ClassSelectionScreen onClassSelected={handleClassSelection} />*/}
+            {/*)}*/}
+
+            {/*{gameStage === 'TRAVEL' && player && (*/}
+            {/*    <TravelScreen*/}
+            {/*        player={player}*/}
+            {/*        onContinueToBattle={handleTravelComplete}*/}
+            {/*    />*/}
+            {/*)}*/}
+
             {gameStage === 'PREPARE' && (
                 <PreparationScreen
                     onStartBattle={handleStartBattle}
@@ -109,7 +140,7 @@ export const App: React.FC = () => {
             )}
             {gameStage === 'POST_BATTLE' && (
                 <BattleEndScreen
-                    onContinue={handlePrepareNextBattle}
+                    onContinue={handleTravel}
                 />
             )}
         </BattleManagerProvider>

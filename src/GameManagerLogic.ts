@@ -69,6 +69,7 @@ export class GameManager {
 
     // Start a new battle
     loadNextBattle(): BattleManager {
+        console.log(this.currentBattle)
         if (this.currentBattle >= this.battles) {
             console.log("Game over: All battles completed!");
             return;
@@ -76,8 +77,10 @@ export class GameManager {
 
         this.currentBattle++;
         let ai = this.createAI();
-        if (this.battleManager)
+        if (this.battleManager){
+            console.log(this.battleManager)
             this.battleManager.cleanup();
+        }
         // Create a new BattleManager for this battle
         this.battleManager = new BattleManager(this.player.character, ai, this.currentBattle);
 
@@ -87,7 +90,7 @@ export class GameManager {
         //     ai.chosenActions.push(randomAction);
         // }
 
-        console.log(`Next opponent is loaded ${this.currentBattle}, ${JSON.stringify(ai)}`);
+        // console.log(`Next opponent is loaded ${this.currentBattle}, ${JSON.stringify(ai)}`);
         return this.battleManager;
     }
 
@@ -121,7 +124,7 @@ export class GameManager {
         this.battleManager = null;
 
         // Load first battle
-        this.loadNextBattle();
+        // this.loadNextBattle();
     }
 
 }

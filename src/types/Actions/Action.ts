@@ -149,10 +149,10 @@ export class Action implements ActionConfig {
         return [updatedCharacter, updatedTarget];
     }
 
-    private DoExecuteAction(character: Character, target: Character):[Character,Character] {
+    private DoExecuteAction(character: Character, target: Character): [Character, Character] {
         let updatedCharacter = character;
         let updatedTarget = target;
-        let UnifiedTriggerManager = new BaseTriggerManager([...character.triggerManager.triggers,...this.triggerManager.triggers]);
+        let UnifiedTriggerManager = new BaseTriggerManager([...character.triggerManager.triggers, ...this.triggerManager.triggers]);
         // Execute pre-action triggers from both sources
         [updatedCharacter, updatedTarget] = UnifiedTriggerManager.executeTriggers(
             "beforeAction",
@@ -165,16 +165,17 @@ export class Action implements ActionConfig {
                 // Execute the behavior
                 const [charAfterBehavior, targetAfterBehavior] = behaviour.execute(
                     currentChar,
-                    currentTarget
+                    currentTarget,
+                    UnifiedTriggerManager
                 );
 
                 // If it's an attack behavior, execute both trigger managers
                 if (behaviour instanceof AttackBehaviour) {
                     return UnifiedTriggerManager.executeTriggers(
-                            'onAttack',
-                            charAfterBehavior,
-                            targetAfterBehavior
-                        );
+                        'onAttack',
+                        charAfterBehavior,
+                        targetAfterBehavior
+                    );
                 }
 
                 return [charAfterBehavior, targetAfterBehavior];
@@ -199,5 +200,6 @@ export interface IActionBehaviour {
 
     getDescription(): string;
 
-    execute(character: Character, target?: Character): [Character, Character] // Logic to apply the action, return log entry
+    //triggermanager is not required for backwards compatibility
+    execute(character: Character, target: Character, triggerManager?: TriggerManager): [Character, Character] // Logic to apply the action, return log entry
 }

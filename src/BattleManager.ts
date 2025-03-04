@@ -98,6 +98,7 @@ export class BattleManager {
     }
 
     public startBattle(): void {
+        console.log(this.battleState);
         if (this.battleState !== BattleState.NOT_STARTED) {
             this.addBattleLog("Battle is already in progress or has ended.");
             return;
