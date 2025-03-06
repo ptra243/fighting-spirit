@@ -1,4 +1,4 @@
-﻿import {Character, createCharacter} from "../Character/Character";
+﻿import {createCharacter} from "../Character/Character";
 import {
     createAction,
     createAttack,
@@ -7,8 +7,7 @@ import {
     createDebuff,
     createRecharge,
 } from "../Actions/BehaviorFactories";
-import { BuffStat } from "../Actions/Behaviours/BuffBehaviour";
-import {CharacterStats} from "../Character/CharacterStats";
+import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
 
 
 // Goblin Grunt

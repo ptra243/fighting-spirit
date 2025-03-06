@@ -1,5 +1,4 @@
 ﻿// ShieldBehavior.ts
-import {IActionBehaviour} from "../Action";
 import {Character} from "../../Character/Character";
 import {CharacterStats} from "../../Character/CharacterStats";
 import {IShieldAbility} from "./BehaviourUnion";
@@ -16,13 +15,14 @@ export class ShieldBehaviour implements IShieldAbility {
 
     execute(me: Character, target: Character): [Character, Character] {
         // Add the shield amount to the target's barrier
-        const newShieldAmount = me.stats.shield + (this.shieldAmount || 0)        ;
+        const newShieldAmount = me.stats.shield + (this.shieldAmount || 0);
         const newStats = new CharacterStats({
             ...me.stats,
             shield: newShieldAmount
         });
         return [me.cloneWith({stats: newStats}), target];
     }
+
     getDescription(): string {
         let description = 'Self. '; // Since shield is always self-targeted
 

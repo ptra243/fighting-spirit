@@ -1,5 +1,5 @@
 ﻿// src/__tests__/types/Character/Character.test.ts
-import { expect, describe, test, beforeEach } from '@jest/globals';
+import {beforeEach, describe, expect, test} from '@jest/globals';
 import {Character, createCharacter} from '../../../types/Character/Character';
 import {CharacterStats} from "../../../types/Character/CharacterStats";
 import {createAction, createAttack} from "../../../types/Actions/BehaviorFactories";
@@ -67,8 +67,8 @@ describe('Character', () => {
     describe('Constructor and Immutability', () => {
         it('should throw error when required properties are missing', () => {
             expect(() => new Character({})).toThrow("The 'name' property is required.");
-            expect(() => new Character({ name: "Test" })).toThrow("The 'stats' property is required.");
-            expect(() => new Character({ name: "Test", stats: new CharacterStats({}) }))
+            expect(() => new Character({name: "Test"})).toThrow("The 'stats' property is required.");
+            expect(() => new Character({name: "Test", stats: new CharacterStats({})}))
                 .toThrow("The 'actions' property is required.");
         });
 
@@ -85,7 +85,7 @@ describe('Character', () => {
         });
 
         it('should maintain original character state after damage', () => {
-            const damaged = baseCharacter.takeDamage(20,source);
+            const damaged = baseCharacter.takeDamage(20, source);
             expect(baseCharacter.stats.hitPoints).toBe(100); // Original unchanged
             expect(damaged.stats.hitPoints).toBe(85); // New instance changed
         });

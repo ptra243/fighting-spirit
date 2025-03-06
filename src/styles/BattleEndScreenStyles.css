@@ -79,8 +79,8 @@
     padding: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    display:flex;
-    gap:2em;
+    display: flex;
+    gap: 2em;
 }
 
 .continue-button {
@@ -190,9 +190,8 @@
 
 .battle-banner.victory h1 {
     color: #90ff90;
-    text-shadow:
-            0 0 10px rgba(125, 255, 125, 0.7),
-            0 0 20px rgba(125, 255, 125, 0.5);
+    text-shadow: 0 0 10px rgba(125, 255, 125, 0.7),
+    0 0 20px rgba(125, 255, 125, 0.5);
 }
 
 .battle-banner.victory h2 {
@@ -208,9 +207,8 @@
 
 .battle-banner.defeat h1 {
     color: #ff9090;
-    text-shadow:
-            0 0 10px rgba(255, 125, 125, 0.7),
-            0 0 20px rgba(255, 125, 125, 0.5);
+    text-shadow: 0 0 10px rgba(255, 125, 125, 0.7),
+    0 0 20px rgba(255, 125, 125, 0.5);
 }
 
 .battle-banner.defeat h2 {
@@ -228,6 +226,7 @@
     margin-top: 2rem;
     width: 100%;
 }
+
 .battle-log {
     background: var(--light-wood);
     border-radius: 8px;

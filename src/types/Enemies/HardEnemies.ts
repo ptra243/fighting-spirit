@@ -7,8 +7,7 @@
     createHeal
 } from "../Actions/BehaviorFactories";
 import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
-import {CharacterStats} from "../Character/CharacterStats";
-import {Character, createCharacter} from "../Character/Character";
+import {createCharacter} from "../Character/Character";
 
 export const Lich = createCharacter(
     "Lich",
@@ -82,7 +81,6 @@ export const dragonWhelp = createCharacter(
         ], 4), // Temporarily increases defense
     ]
 );
-
 
 
 export const demonLord = createCharacter(

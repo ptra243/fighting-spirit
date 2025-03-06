@@ -10,12 +10,12 @@ import {
 import {StatItem} from "./StatItemComponent";
 import {EnemyPreview} from "./EnemyPreviewComponent";
 import DragAndDropActions from "./DragAndDropActionManager";
-import {SoldierAnimation, SoldierSprite} from "../Battle/SoldierSprite";
 
 export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
-    const {battleManager} = useBattleManager();
+    const {playerState, battleManager, setPlayer} = useBattleManager();
     const {player: character, ai: aiStats} = battleManager;
 
+    let playerCharacter = playerState.applyOutOfBattleStats();
     const [expandedSections, setExpandedSections] = useState<ExpandableState>({
         stats: false,
         equipment: false
@@ -26,7 +26,7 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
         hasAttempted: false
     });
     let requiredCards: number = battleManager.getRound();
-    requiredCards +=2;
+    requiredCards += 2;
 
 
     const handleStartBattle = () => {
@@ -35,6 +35,12 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
 
         if (errors.length === 0) {
             setValidationState(prev => ({...prev, errors: null}));
+            // console.log({
+            //     description: 'Classes before we start the battle',
+            //     playerStateClasses: playerState.classes,
+            //     battleManagerClasses: battleManager.player.classes
+            // });
+            // setPlayer(playerState);
             onStartBattle();
         } else {
             setValidationState(prev => ({...prev, errors}));
@@ -54,20 +60,20 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
                 <div className="player-section">
                     <h1>{character.name}'s Battle Preparation</h1>
                     <h1>Battle {battleManager.getRound()}</h1>
-                    <div>
-                        {/* First row animation */}
-                        <SoldierSprite animation={SoldierAnimation.IDLE} showDebugControls={true} scale={2} frameHeight={100} frameWidth={100}/>
+                    {/*<div>*/}
+                    {/*    /!* First row animation *!/*/}
+                    {/*    <SoldierSprite animation={SoldierAnimation.IDLE} showDebugControls={true} scale={2} frameHeight={100} frameWidth={100}/>*/}
 
-                    </div>
+                    {/*</div>*/}
                     <div className="stats-section">
                         <h3 className="section-header">Character Statistics</h3>
                         <div className="stats-grid">
-                            <StatItem label="HP" value={character.stats.maxHitPoints}/>
-                            <StatItem label="Attack" value={character.stats.attack}/>
-                            <StatItem label="Defence" value={character.stats.defence}/>
-                            <StatItem label="Starting Energy" value={character.stats.energy}/>
-                            <StatItem label="Energy Regeneration" value={character.stats.energyRegen}/>
-                            <StatItem label="HP Regeneration" value={character.stats.hpRegen}/>
+                            <StatItem label="HP" value={playerCharacter.stats.maxHitPoints}/>
+                            <StatItem label="Attack" value={playerCharacter.stats.attack}/>
+                            <StatItem label="Defence" value={playerCharacter.stats.defence}/>
+                            <StatItem label="Starting Energy" value={playerCharacter.stats.energy}/>
+                            <StatItem label="Energy Regeneration" value={playerCharacter.stats.energyRegen}/>
+                            <StatItem label="HP Regeneration" value={playerCharacter.stats.hpRegen}/>
                         </div>
 
                         <div className="expandable-section">

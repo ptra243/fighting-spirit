@@ -47,7 +47,7 @@ const DEFAULT_SOLDIER_SPRITE_PROPS = {
     frameRate: 100,
     isPlaying: true,
     showDebugControls: false,
-    spriteSheet: "/src/images/Characters/Orc/Orc/Orc.png",
+    spriteSheet: "/src/images/Characters/Sprite/Orc.png",
     isPlayerCharacter: false,
     frameWidth: 100,
     frameHeight: 100,

@@ -1,10 +1,11 @@
-﻿import React, {createContext, useContext, useReducer, useState} from 'react';
+﻿import React, {createContext} from 'react';
 import {Character} from '../types/Character/Character';
 import {Action} from '../types/Actions/Action'
 import {useBattleManager} from "./BattleManagerContext";
 
 
 const CharacterContext = createContext<CharacterContextValue>(undefined);
+
 interface CharacterContextValue {
     character: Character;
     isPlayer: boolean;

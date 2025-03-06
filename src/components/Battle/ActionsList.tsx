@@ -1,11 +1,10 @@
 ﻿import React from "react";
-import {Character} from "../../types/Character/Character";
 import {useBattleManager} from "../../context/BattleManagerContext";
 
 export const ActionsList: React.FC<{
     isPlayer: boolean
 }> = ({isPlayer}) => {
-    const { playerState, aiState } = useBattleManager();
+    const {playerState, aiState} = useBattleManager();
 
     // Get current character state
     const character = isPlayer ? playerState : aiState;

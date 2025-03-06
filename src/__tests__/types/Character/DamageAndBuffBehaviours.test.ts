@@ -30,7 +30,7 @@ describe('Character Turn Effects', () => {
             });
 
             // Apply buffs using StatBuilder
-            const { stats: updatedStats } = new StatBuilder(character)
+            const {stats: updatedStats} = new StatBuilder(character)
                 .applyActiveBuffs()
                 .build();
 
@@ -95,7 +95,7 @@ describe('Character Turn Effects', () => {
                 activeBuffs: debuffs
             });
 
-            const { stats: updatedStats } = new StatBuilder(character)
+            const {stats: updatedStats} = new StatBuilder(character)
                 .applyActiveBuffs()
                 .build();
 
@@ -124,7 +124,7 @@ describe('Character Turn Effects', () => {
                 activeBuffs: [buff]
             });
 
-            const { stats: updatedStats, buffs: remainingBuffs } = new StatBuilder(character)
+            const {stats: updatedStats, buffs: remainingBuffs} = new StatBuilder(character)
                 .applyActiveBuffs()
                 .decreaseEffectDurations()
                 .build();
@@ -158,7 +158,7 @@ describe('Character Turn Effects', () => {
                 activeBuffs: buffs
             });
 
-            const { stats: updatedStats } = new StatBuilder(character)
+            const {stats: updatedStats} = new StatBuilder(character)
                 .decayShield()
                 .applyEquipmentBuffs()
                 .applyActiveBuffs()

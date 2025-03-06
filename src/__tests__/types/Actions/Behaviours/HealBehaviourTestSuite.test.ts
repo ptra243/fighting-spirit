@@ -6,7 +6,7 @@ import {createTestCharacter} from "./testCharacterFactory.test";
 describe('HealBehaviour', () => {
     it('should heal character correctly', () => {
         const heal = new HealBehaviour("Test Heal", 20);
-        const character = createTestCharacter({ hitPoints: 50 });
+        const character = createTestCharacter({hitPoints: 50});
         const target = createTestCharacter();
 
         const [updatedCharacter, unchangedTarget] = heal.execute(character, target);
@@ -16,7 +16,7 @@ describe('HealBehaviour', () => {
 
     it('should not heal beyond max health', () => {
         const heal = new HealBehaviour("Big Heal", 50);
-        const character = createTestCharacter({ hitPoints: 90, maxHitPoints: 100 });
+        const character = createTestCharacter({hitPoints: 90, maxHitPoints: 100});
         const target = createTestCharacter();
 
         const [updatedCharacter, unchangedTarget] = heal.execute(character, target);

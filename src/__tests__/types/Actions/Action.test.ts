@@ -2,8 +2,6 @@
 import {Character} from "../../../types/Character/Character";
 import {Action, IActionBehaviour} from "../../../types/Actions/Action";
 import {createTestCharacter} from "./Behaviours/testCharacterFactory.test";
-import {CharacterStats} from "../../../types/Character/CharacterStats";
-import {AttackBehaviour} from "../../../types/Actions/Behaviours/AttackBehaviour";
 
 
 // Mock behaviour for testing

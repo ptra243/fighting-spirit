@@ -1,6 +1,6 @@
 ﻿// src/types/Actions/ActionPool.ts
-import { Action, ActionRequirement } from "./Action";
-import { CharacterClass } from "../Classes/CharacterClass";
+import {Action} from "./Action";
+import {CharacterClass} from "../Classes/CharacterClass";
 
 export class ActionPool {
     private static readonly pools: Map<string, Action[]> = new Map();
@@ -15,8 +15,8 @@ export class ActionPool {
 
     public static meetsRequirement(action: Action, classes: CharacterClass[]): boolean {
         if (!action.requirement) return true;
-        
-        const requiredClass = classes.find(c => 
+
+        const requiredClass = classes.find(c =>
             c.getName() === action.requirement?.className
         );
 
@@ -26,25 +26,25 @@ export class ActionPool {
     }
 
     public static getAvailableActions(classes: CharacterClass[]): Action[] {
-        const allClassActions = classes.flatMap(characterClass => 
+        const allClassActions = classes.flatMap(characterClass =>
             this.getClassActions(characterClass.getName())
         );
 
-        return allClassActions.filter(action => 
+        return allClassActions.filter(action =>
             this.meetsRequirement(action, classes)
         );
     }
 
     // Helper method to get actions that will be available at next level
     public static getUpcomingActions(classes: CharacterClass[]): Action[] {
-        const allClassActions = classes.flatMap(characterClass => 
+        const allClassActions = classes.flatMap(characterClass =>
             this.getClassActions(characterClass.getName())
         );
 
         return allClassActions.filter(action => {
             if (!action.requirement) return false;
-            
-            const requiredClass = classes.find(c => 
+
+            const requiredClass = classes.find(c =>
                 c.getName() === action.requirement?.className
             );
 

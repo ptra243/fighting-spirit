@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+﻿import React, {useState} from 'react';
 import "../../styles/BattleEndScreenStyles.css";
-import { ActionCard } from '../Cards/ActionCardComponent';
-import { Action } from "../../types/Actions/Action";
+import {ActionCard} from '../Cards/ActionCardComponent';
+import {Action} from "../../types/Actions/Action";
 import {StatItem} from "../Preparation/StatItemComponent";
 import {useBattleManager} from "../../context/BattleManagerContext";
 
@@ -9,14 +9,14 @@ interface BattleEndScreenProps {
     onContinue: (selectedCard?: Action) => void;
 }
 
-export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({ onContinue }) => {
-    const { battleManager,setPlayerActions, aiState, } = useBattleManager();
+export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({onContinue}) => {
+    const {battleManager, setPlayerActions, aiState,} = useBattleManager();
     const [selectedCard, setSelectedCard] = useState<Action | null>(null);
 
     const battleLog = battleManager.getBattleLog();
     const summary = battleLog.getSummary();
     const winner = battleManager.getWinner();
-    const opponent =aiState;
+    const opponent = aiState;
     const isVictorious = battleManager.isPlayerVictorious();
 
     const handleContinue = () => {
@@ -52,7 +52,7 @@ export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({ onContinue }) 
                                             className={`card-container ${selectedCard === card ? 'selected' : ''}`}
                                             onClick={() => setSelectedCard(card)}
                                         >
-                                            <ActionCard action={card} />
+                                            <ActionCard action={card}/>
                                         </div>
                                     ))}
                                 </div>
@@ -73,13 +73,13 @@ export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({ onContinue }) 
                         {expandedDetails && (
                             <div className="battle-details">
                                 <h3 className="section-header">Battle Summary</h3>
-                                <div >
+                                <div>
                                     <div className="stats-grid">
-                                        <StatItem label="Total Turns" value={summary.totalTurns} />
-                                        <StatItem label="Total Damage" value={summary.totalDamageDealt} />
-                                        <StatItem label="Total Healing" value={summary.totalHealing} />
-                                        <StatItem label="Max Damage/Turn" value={summary.mostDamageInOneTurn} />
-                                        <StatItem label="Longest Buff" value={summary.longestBuff} />
+                                        <StatItem label="Total Turns" value={summary.totalTurns}/>
+                                        <StatItem label="Total Damage" value={summary.totalDamageDealt}/>
+                                        <StatItem label="Total Healing" value={summary.totalHealing}/>
+                                        <StatItem label="Max Damage/Turn" value={summary.mostDamageInOneTurn}/>
+                                        <StatItem label="Longest Buff" value={summary.longestBuff}/>
                                         {summary.killingBlow && (
                                             <div className="killing-blow-stat">
                                                 <span className="label">Killing Blow:</span>

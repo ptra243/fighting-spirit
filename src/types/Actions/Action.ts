@@ -1,7 +1,5 @@
 ﻿import {Character} from "../Character/Character";
 import {Modifier} from './Modifiers/IModifier';
-import _ from "lodash";
-import {TriggerType} from "./Triggers/Trigger";
 import {BaseTriggerManager, TriggerManager} from "./Triggers/TriggerManager";
 import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
 
@@ -153,6 +151,7 @@ export class Action implements ActionConfig {
         let updatedCharacter = character;
         let updatedTarget = target;
         let UnifiedTriggerManager = new BaseTriggerManager([...character.triggerManager.triggers, ...this.triggerManager.triggers]);
+        UnifiedTriggerManager.resetTriggers();
         // Execute pre-action triggers from both sources
         [updatedCharacter, updatedTarget] = UnifiedTriggerManager.executeTriggers(
             "beforeAction",

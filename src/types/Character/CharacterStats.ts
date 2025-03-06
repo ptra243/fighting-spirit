@@ -14,19 +14,19 @@
 
 
     constructor(stats: Partial<CharacterStats>) {
-        this.maxHitPoints = stats.maxHitPoints ?? 100; // Default value as fallback
+        this.maxHitPoints = stats.maxHitPoints ?? 0; // Default value as fallback
         this.hitPoints = stats.hitPoints ?? this.maxHitPoints;
-        this.attack = stats.attack ?? 10;
-        this.defence = stats.defence ?? 5;
+        this.attack = stats.attack ?? 0;
+        this.defence = stats.defence ?? 0;
         this.shield = stats.shield ?? 0;
-        this.energy = stats.energy ?? 1;
-        this.maxEnergy = stats.maxEnergy ?? 10;
-        this.energyRegen = stats.energyRegen ?? 1;
+        this.energy = stats.energy ?? 0;
+        this.maxEnergy = stats.maxEnergy ?? 0;
+        this.energyRegen = stats.energyRegen ?? 0;
         this.hpRegen = stats.hpRegen ?? 0;
         this.speed = stats.speed ?? 25;
         this.actionCounter = stats.actionCounter ?? 0;
-        this.chargesPerTurn = stats.chargesPerTurn ?? 1;
-      
+        this.chargesPerTurn = stats.chargesPerTurn ?? 0;
+
     }
 
     // Immutable method for taking damage
@@ -91,6 +91,7 @@
     }
 
     incrementActionCounter(): CharacterStats {
+
         const newCounter = Math.min(100, this.actionCounter + this.speed);
         return new CharacterStats({
             ...this,
@@ -121,7 +122,6 @@
             actionCounter: this.actionCounter // Don't add action counters
         });
     }
-
 
 
 }

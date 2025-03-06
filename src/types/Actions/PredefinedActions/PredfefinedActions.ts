@@ -13,7 +13,8 @@ const heavySlash = createAction("Heavy Slash", [createAttack("Heavy Slash", 5)],
 const fireball = createAction("Fireball", [createAttack("Fireball", 10)], 2);
 
 const healingLight = createAction("Healing Light", [createHeal("Healing Light", 5)], 2);
-export const defensiveStance = createAction("Defensive Stance", [
+
+const defensiveStance = createAction("Defensive Stance", [
     createShield("Defensive Stance Shield", 5),
     createBuff("Defensive Stance Boost", BuffStat.Defense, 2, 3),
 ], 4);

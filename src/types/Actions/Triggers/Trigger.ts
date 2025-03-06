@@ -1,11 +1,22 @@
-﻿
-// First, define trigger types and interfaces
+﻿// First, define trigger types and interfaces
 import {IActionBehaviour} from "../Action";
 import {CharacterStats} from "../../Character/CharacterStats";
 import {Character} from "../../Character/Character";
-import { BuffStat } from "../Behaviours/BuffBehaviour";
+import {BuffBehaviour} from "../Behaviours/BuffBehaviour";
+import {AttackBehaviour} from "../Behaviours/AttackBehaviour";
 
-export type TriggerType = 'beforeAction'| 'onAttack' | 'onDamageDealt' | 'onDamageTaken' | 'onHeal' | 'onApplyBuff'| 'onApplyDebuff' | 'beforeDamageTaken' | 'afterAction';
+export type TriggerType =
+    'turnStart'
+    | 'beforeAction'
+    | 'onAttack'
+    | 'onDamageDealt'
+    | 'onDamageTaken'
+    | 'onHeal'
+    | 'onApplyBuff'
+    | 'onApplyDebuff'
+    | 'beforeDamageTaken'
+    | 'afterAction'
+    | 'turnEnd';
 
 export interface TriggerContext {
     actionName?: string;
@@ -16,22 +27,18 @@ export interface BeforeActionContext extends TriggerContext {
 }
 
 export interface AttackContext extends TriggerContext {
-    damage: number;
+    attack: AttackBehaviour;
     isCritical?: boolean;
     damageMultiplier?: number;
 }
 
 export interface DamageContext extends TriggerContext {
-    damage: number;
-    damageType?: string;
+    totalDamage: number
 }
 
 export interface BuffContext extends TriggerContext {
-    buff: {
-        amount: number;
-        duration: number;
-        buffType: BuffStat;
-    }
+    buff: BuffBehaviour
+
 }
 
 
@@ -52,6 +59,7 @@ export interface TriggerEffect {
 }
 
 export interface ActionTrigger {
+    hasBeenTriggered: boolean;
     condition: TriggerCondition;
     effect: TriggerEffect;
 }

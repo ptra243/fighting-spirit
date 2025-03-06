@@ -1,7 +1,7 @@
-﻿import { CharacterStats } from "./CharacterStats";
-import { Character } from "./Character";
-import { BuffStat, BuffBehaviour } from "../Actions/Behaviours/BuffBehaviour";
-import { DamageOverTimeBehaviour } from "../Actions/Behaviours/DamageOverTimeBehaviour";
+﻿import {CharacterStats} from "./CharacterStats";
+import {Character} from "./Character";
+import {BuffBehaviour, BuffStat} from "../Actions/Behaviours/BuffBehaviour";
+import {DamageOverTimeBehaviour} from "../Actions/Behaviours/DamageOverTimeBehaviour";
 
 interface BuildResult {
     stats: CharacterStats;
@@ -50,11 +50,11 @@ export class StatBuilder {
 
     decreaseEffectDurations(): StatBuilder {
         this.currentBuffs = this.currentBuffs
-            .map(buff => buff.clone({ duration: buff.duration - 1 }))
+            .map(buff => buff.clone({duration: buff.duration - 1}))
             .filter(buff => buff.duration > 0);
 
         this.currentDots = this.currentDots
-            .map(dot => dot.clone({ duration: dot.duration - 1 }))
+            .map(dot => dot.clone({duration: dot.duration - 1}))
             .filter(dot => dot.duration > 0);
 
         return this;
@@ -122,7 +122,7 @@ export class StatBuilder {
     }
 
     modifyEnergy(amount: number): StatBuilder {
-         this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = this.currentStats.cloneWith({
             energy: Math.min(
                 this.currentStats.maxEnergy,
                 Math.max(0, this.currentStats.energy + amount)
@@ -137,8 +137,14 @@ export class StatBuilder {
         if (!this.character.getClasses) return this; // For backward compatibility
 
         const classes = this.character.getClasses();
+        if (classes.length === 0) return this;  // Add this check
+
+        console.log('Classes array:', classes);  // Add this log
+        console.log('Classes length:', classes.length);  // And this one
+
         const classStats = classes.reduce((totalStats, characterClass) => {
             const stats = characterClass.getCurrentStats();
+
             return totalStats.add(stats);
         }, new CharacterStats({}));
 
@@ -156,7 +162,7 @@ export class StatBuilder {
         };
     }
 
-    getStatsForTurn(){
+    getStatsForTurn() {
         return this
             .applyClassStats()
             .applyEquipmentBuffs()
@@ -166,6 +172,14 @@ export class StatBuilder {
             .build();
     }
 
+    setToFullHP() {
+
+        this.currentStats = this.currentStats.cloneWith({
+            hitPoints: this.currentStats.maxHitPoints
+        });
+
+        return this;
+    }
 
     decayShield(): StatBuilder {
         this.currentStats = this.currentStats.cloneWith({

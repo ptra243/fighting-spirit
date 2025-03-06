@@ -6,6 +6,8 @@ import {MediumEnemies} from "./types/Enemies/MediumEnemies";
 import {HardEnemies} from "./types/Enemies/HardEnemies";
 import {CharacterStats} from "./types/Character/CharacterStats";
 import {Player} from "./types/Player/Player";
+import _ from "lodash";
+import {basicAttack, basicBlock} from "./types/Actions/PredefinedActions/KnightActions";
 
 export class GameManager {
     player: Player;
@@ -13,10 +15,34 @@ export class GameManager {
     currentBattle: number = 0;
     battles: number;
 
-    constructor(player: Player, totalBattles: number) {
-        this.player = player; // Persist player across battles
-        this.battles = totalBattles; // Series of battles
-        this.loadNextBattle(); // Immediate start of the first battle
+    constructor(updatedGameManager: Partial<GameManager>) {
+        this.player = updatedGameManager.player || this.createNewPlayer(); // Persist player across battles
+        this.battles = updatedGameManager.battles || 10; // Series of battles
+        this.currentBattle = updatedGameManager.currentBattle || 0; // Series of battles
+        this.battleManager = updatedGameManager.battleManager || this.loadNextBattle(); // Series of battles
+        // this.loadNextBattle(); // Immediate start of the first battle
+    }
+
+    private createNewPlayer(): Player {
+
+        let character = new Character({
+            name: "Hero",
+            stats: new CharacterStats({
+                maxHitPoints: 50,
+                attack: 2,
+                defence: 2,
+                energyRegen: 2,
+                energy: 1,
+                speed: 25,
+                maxEnergy: 10,
+                hpRegen: 1,
+                chargesPerTurn: 1,
+
+            }),
+            actions: [basicAttack(), basicAttack(), basicBlock()],
+            sprite: 'knight.jpg'
+        });
+        return new Player(character, 10);
     }
 
     // Create an AI opponent with a slight increase in difficulty each battle
@@ -77,7 +103,7 @@ export class GameManager {
 
         this.currentBattle++;
         let ai = this.createAI();
-        if (this.battleManager){
+        if (this.battleManager) {
             console.log(this.battleManager)
             this.battleManager.cleanup();
         }
@@ -116,15 +142,30 @@ export class GameManager {
     }
 
 
-    resetGame(): void {
+    resetGame(): GameManager {
         // Reset game state
-        this.currentBattle = 0;
-        this.player.character = this.player.character.reset(); // Make sure Character class has a reset method
         this.battleManager?.cleanup();
-        this.battleManager = null;
-
+        return new GameManager({})
         // Load first battle
         // this.loadNextBattle();
     }
 
+    updateCharacter = (character: Character) => {
+        this.player.character = character;
+        if (this.battleManager) {
+            console.log('updated character in battlemanager')
+            this.battleManager.player = character;
+        }
+        console.log(this.player.character);
+
+    }
+
+    updatePlayer(player: Player) {
+        this.player = player;
+    }
+
+    cloneWith(updatedGame: Partial<GameManager>) {
+        return _.cloneWith({...updatedGame});
+
+    }
 }

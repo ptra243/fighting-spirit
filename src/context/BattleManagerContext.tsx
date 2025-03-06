@@ -1,28 +1,25 @@
-﻿import React, {createContext, useContext, useState, useEffect} from 'react';
+﻿import React, {createContext, useContext, useEffect, useState} from 'react';
 import {BattleManager} from '../BattleManager';
 import {Character} from '../types/Character/Character';
 import {BattleLog} from "../types/Battle/BattleLog";
-import {Actions} from "@dnd-kit/core/dist/store/actions";
 import {Action} from "../types/Actions/Action";
 
+// Modified interface to handle nullable BattleManager
 interface BattleManagerContextValue {
-    battleManager: BattleManager;
-    playerState: Character;
-    aiState: Character;
+    battleManager: BattleManager | null;
+    playerState: Character | null;
+    aiState: Character | null;
     currentPlayerActionIndex: number;
     currentAIActionIndex: number;
-    logs: BattleLog;
+    logs: BattleLog | null;
     forceUpdate: () => void;
-    setBattleManager: (manager: BattleManager) => void;
+    setBattleManager: (manager: BattleManager | null) => void;
     setPlayerActions: (actions: Action[]) => void;
-    setPlayer: (player: Character) => void;  // Add these methods
-    setAI: (ai: Character) => void;         // instead of setBattleManager
+    setPlayer: (player: Character) => void;
+    setAI: (ai: Character) => void;
     battleConfig: {
         TURN_INTERVAL_MS: number;
-        // ... other config properties
     };
-
-
 }
 
 const BattleManagerContext = createContext<BattleManagerContextValue | null>(null);
@@ -36,88 +33,91 @@ export const useBattleManager = () => {
 };
 
 export const BattleManagerProvider: React.FC<{
-    manager: BattleManager;
+    manager: BattleManager | null;
     children: React.ReactNode;
 }> = ({manager, children}) => {
     const [updateVersion, setUpdateVersion] = useState(0);
-    const [battleManager, setBattleManager] = useState(manager);
+    const [battleManager, setBattleManager] = useState<BattleManager | null>(manager);
 
-    // Update internal battleManager when prop changes
-    // useEffect(() => {
-    //     setBattleManager(manager);
-    // }, [manager]);
-
-    const updateBattleManager = (newManager: BattleManager) => {
+    const updateBattleManager = (newManager: BattleManager | null) => {
         setBattleManager(newManager);
     };
 
     const setPlayer = (newPlayer: Character) => {
-        battleManager.player = newPlayer;
-        forceUpdate();
+        if (battleManager) {
+            console.log({description: 'battleManagerContext: setPlayer', player: newPlayer})
+            battleManager.player = newPlayer;
+            forceUpdate();
+        }
     };
 
     const setAI = (newAI: Character) => {
-        battleManager.ai = newAI;
-        forceUpdate();
-    };
-    const setPlayerActions = (newActions: Action[]) => {
-        // battleManager.ai = newAI;
-        setPlayer(new Character({...battleManager.player, actions: newActions}));
-        forceUpdate();
+        if (battleManager) {
+            battleManager.ai = newAI;
+            forceUpdate();
+        }
     };
 
-    // Initialize state with the manager
+    const setPlayerActions = (newActions: Action[]) => {
+        if (battleManager && battleManager.player) {
+            setPlayer(new Character({...battleManager.player, actions: newActions}));
+            forceUpdate();
+        }
+    };
+
+    // Initialize state with null-safe values
     const [state, setState] = useState(() => ({
         battleManager: manager,
-        playerState: manager.player,
-        aiState: manager.ai,
-        currentPlayerActionIndex: manager.player.currentAction || 0,
-        currentAIActionIndex: manager.ai.currentAction || 0,
-        logs: manager.getBattleLog(),
+        playerState: manager?.player || null,
+        aiState: manager?.ai || null,
+        currentPlayerActionIndex: manager?.player?.currentAction || 0,
+        currentAIActionIndex: manager?.ai?.currentAction || 0,
+        logs: manager?.getBattleLog() || new BattleLog(), // or null depending on your needs
         setBattleManager: updateBattleManager,
         setPlayer,
-        setAi: setAI,
+        setAI,
         setPlayerActions,
         battleConfig: BattleManager.CONFIG
     }));
 
-    // Update internal battleManager when prop changes
-    useEffect(() => {
-        setBattleManager(manager);
-    }, [manager]);
-
-
     const forceUpdate = () => {
         setUpdateVersion(prev => prev + 1);
-    };  // Add methods to update specific characters
-
-
-    // Update state when battleManager changes
+    };
     useEffect(() => {
         const handleUpdate = () => {
+            console.log({
+                description: 'BattleManager Context Update',
+                playerState: battleManager?.player?.classes,
+                timestamp: new Date().toISOString()
+            });
+
             setState({
                 battleManager: battleManager,
-                playerState: battleManager.player,
-                aiState: battleManager.ai,
-                currentPlayerActionIndex: battleManager.player.currentAction || 0,
-                currentAIActionIndex: battleManager.ai.currentAction || 0,
-                logs: battleManager.getBattleLog(),
+                playerState: battleManager?.player || null,
+                aiState: battleManager?.ai || null,
+                currentPlayerActionIndex: battleManager?.player?.currentAction || 0,
+                currentAIActionIndex: battleManager?.ai?.currentAction || 0,
+                logs: battleManager?.getBattleLog() || new BattleLog(),
                 setBattleManager: updateBattleManager,
-                setPlayer: setPlayer,
-                setAi: setAI,
-                setPlayerActions: setPlayerActions,
+                setPlayer,
+                setAI,
+                setPlayerActions,
                 battleConfig: BattleManager.CONFIG
             });
-            forceUpdate();
+            // Remove forceUpdate() as setState will trigger a rerender anyway
         };
 
         handleUpdate(); // Initial update
-        battleManager.subscribe(handleUpdate);
 
-        return () => {
-            battleManager.unsubscribe(handleUpdate);
-        };
-    }, [battleManager]); // Dependency on battleManager instead of manager
+        // Only subscribe if battleManager exists
+        if (battleManager) {
+            battleManager.subscribe(handleUpdate);
+            return () => {
+                battleManager.unsubscribe(handleUpdate);
+            };
+        }
+    }, [battleManager]); // Simplified dependency array
+
 
     const contextValue: BattleManagerContextValue = {
         ...state,
@@ -125,7 +125,6 @@ export const BattleManagerProvider: React.FC<{
         setPlayer,
         setAI,
         battleConfig: BattleManager.CONFIG
-
     };
 
     return (

@@ -6,13 +6,11 @@ interface CharacterCardProps {
     isPlayer: boolean;
 }
 
-export const CharacterCard: React.FC<CharacterCardProps> = ({ isPlayer }) => {
-    const { playerState, aiState, battleConfig } = useBattleManager();
+export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
+    const {playerState, aiState, battleConfig} = useBattleManager();
 
     const [speedBarWidth, setSpeedBarWidth] = useState(0);
-
-    // Get current character state
-    const character = isPlayer ? playerState : aiState;
+    const [character, setCharacter] = useState(isPlayer ? playerState : aiState);
 
     const getPercentage = (current: number, max: number) => (current / max) * 100;
 
@@ -26,6 +24,9 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ isPlayer }) => {
         setSpeedBarWidth(character.stats.actionCounter);
     }, [character.stats.actionCounter]);
 
+    useEffect(() => {
+        setCharacter(isPlayer ? playerState : aiState);
+    }, [playerState, aiState]);
     return (
         <div className={`character-card ${isPlayer ? 'player-card' : 'ai-card'}`}>
             <h2>{character.name}</h2>
@@ -71,7 +72,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ isPlayer }) => {
                         <div className="bar-background">
                             <div
                                 className="bar shield-bar"
-                                style={{ width: '100%' }}
+                                style={{width: '100%'}}
                             >
                                 {character.stats.shield}
                             </div>

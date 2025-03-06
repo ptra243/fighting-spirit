@@ -1,6 +1,4 @@
-﻿
-
-// types/Preparation/PreparationEvent.ts
+﻿// types/Preparation/PreparationEvent.ts
 import {Player} from "../Player/Player";
 
 export enum PreparationEventType {

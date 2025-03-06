@@ -1,7 +1,6 @@
 ﻿// types/Player/Player.ts
-import { Character } from "../Character/Character";
-import { Action } from "../Actions/Action";
-import { Equipment } from "../Equipment/Equipment";
+import {Character} from "../Character/Character";
+import {Action} from "../Actions/Action";
 
 export class Player {
     character: Character;

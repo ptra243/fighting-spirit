@@ -1,4 +1,4 @@
-﻿import { BuffBehaviour } from "../ActionEquipmentExports";
+﻿import {BuffBehaviour} from "../ActionEquipmentExports";
 
 // BaseEquipment.ts
 export abstract class BaseEquipment {

@@ -1,8 +1,8 @@
 ﻿import {CharacterStats} from './CharacterStats';
-import {BuffBehaviour, BuffStat} from "../Actions/Behaviours/BuffBehaviour";
+import {BuffBehaviour} from "../Actions/Behaviours/BuffBehaviour";
 import {DamageOverTimeBehaviour} from "../Actions/Behaviours/DamageOverTimeBehaviour";
-import {Action, IActionBehaviour} from "../Actions/Action";
-import _, {initial} from "lodash";
+import {Action} from "../Actions/Action";
+import _ from "lodash";
 import {createAction} from "../Actions/BehaviorFactories";
 import {BaseEquipment} from "../Equipment/EquipmentClassHierarchy";
 import {CharacterEquipment} from "./CharacterEquipment";
@@ -56,9 +56,7 @@ export class Character {
         this.isCharging = initialCharacter.isCharging || false;
         this.logCallback = initialCharacter?.logCallback; // Inject logging callback
         this.chargeTurns = initialCharacter.chargeTurns || 0;
-        this.equipment = initialCharacter.equipment || new CharacterEquipment({
-            logCallback: initialCharacter.logCallback
-        });
+        this.equipment = initialCharacter.equipment || new CharacterEquipment();
 
         this.activeBuffs = initialCharacter.activeBuffs || [];
         this.activeDOTs = initialCharacter.activeDOTs || [];
@@ -73,8 +71,9 @@ export class Character {
         }
     }
 
-    public addClass(characterClass: CharacterClass): void {
+    public addClass(characterClass: CharacterClass): Character {
         this.classes.push(characterClass);
+        return this.cloneWith({});
     }
 
     // Helper method to add character-wide triggers
@@ -174,14 +173,18 @@ export class Character {
 
     addBuff(buff: BuffBehaviour) {
         this.activeBuffs.push(buff.clone({}));
-        this.logCallback.battleLog(this, 'buff', buff.amount, this);
-        this.logCallback.messageLog(`${this.name} gained ${buff.name}`);
+        if (this.logCallback) {
+            this.logCallback.messageLog(`${this.name} gained ${buff.name}`);
+            this.logCallback.battleLog(this, 'buff', buff.amount, this);
+        }
         return this.cloneWith({});
     }
 
     addDOT(dot: DamageOverTimeBehaviour) {
         this.activeDOTs.push(dot.clone({}));
-        this.logCallback?.messageLog(`${dot.name} has been applied to ${this.name}.`);
+        if (this.logCallback) {
+            this.logCallback?.messageLog(`${dot.name} has been applied to ${this.name}.`);
+        }
         return this.cloneWith({});
     }
 
@@ -189,15 +192,18 @@ export class Character {
     applyStartOfTurnEffects(): Character {
         // Apply DOTs and get the updated character
         const builder = new StatBuilder(this);
+        console.log({description: 'before start of turn', stats: this.stats})
         const {stats: updatedStats, dots: updatedDOTS, buffs: updatedBuffs} = builder
+            .applyClassStats()
+            .applyEquipmentBuffs()
             .decreaseEffectDurations()
             .decayShield()
             .applyDOTs()
-            .applyEquipmentBuffs()
             .applyActiveBuffs()
             .applyRegen()
             .build();
 
+        console.log({description: 'after start of turn', stats: updatedStats})
         // Use the character's current stats (which include regeneration) for the final clone
         return this.cloneWith({
             stats: updatedStats,
@@ -261,12 +267,15 @@ export class Character {
         // Reset any other character-specific states
     }
 
-    //TODO
-    static createFromClass(classData: CharacterClass): Character {
-        let updatedCharacter = new Character({stats: classData.getStatsForLevel(1)});
-        updatedCharacter.addClass(classData);
-        return updatedCharacter;
+    applyOutOfBattleStats() {
+        const builder = new StatBuilder(this);
+        const newStats = builder.applyClassStats().setToFullHP().build().stats;
+        return new Character({
+            ...this,
+            stats: newStats
+        });
     }
+
 }
 
 export function

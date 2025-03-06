@@ -1,5 +1,4 @@
-﻿import {IActionBehaviour} from "../Action";
-import {Character} from "../../Character/Character";
+﻿import {Character} from "../../Character/Character";
 import {IHealBehaviour} from "./BehaviourUnion";
 
 export class HealBehaviour implements IHealBehaviour {

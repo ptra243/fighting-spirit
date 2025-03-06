@@ -6,7 +6,7 @@ import {createTestCharacter} from "./testCharacterFactory.test";
 describe('ShieldBehaviour', () => {
     it('should add shield correctly', () => {
         const shield = new ShieldBehaviour("Test Shield", 10);
-        const character = createTestCharacter({ shield: 0 });
+        const character = createTestCharacter({shield: 0});
         const target = createTestCharacter();
 
         const [updatedCharacter, unchangedTarget] = shield.execute(character, target);
@@ -16,7 +16,7 @@ describe('ShieldBehaviour', () => {
 
     it('should stack with existing shield', () => {
         const shield = new ShieldBehaviour("Test Shield", 10);
-        const character = createTestCharacter({ shield: 5 });
+        const character = createTestCharacter({shield: 5});
         const target = createTestCharacter();
 
         const [updatedCharacter, unchangedTarget] = shield.execute(character, target);

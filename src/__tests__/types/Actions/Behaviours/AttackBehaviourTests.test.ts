@@ -5,7 +5,7 @@ describe('AttackBehaviour', () => {
     it('should deal basic damage reduced by defense', () => {
         const attack = new AttackBehaviour("Test Attack", 10);
         const attacker = createTestCharacter();
-        const target = createTestCharacter({ defence: 3 });
+        const target = createTestCharacter({defence: 3});
 
         const [updatedAttacker, updatedTarget] = attack.execute(attacker, target);
 
@@ -19,8 +19,8 @@ describe('AttackBehaviour', () => {
             AttackScalingStat.Attack,
             100
         );
-        const attacker = createTestCharacter({ attack: 5 });
-        const target = createTestCharacter({ defence: 4, shield:0 });
+        const attacker = createTestCharacter({attack: 5});
+        const target = createTestCharacter({defence: 4, shield: 0});
 
         const [updatedAttacker, updatedTarget] = attack.execute(attacker, target);
 
@@ -28,16 +28,16 @@ describe('AttackBehaviour', () => {
     });
 
     it('should deal minimum 1 damage when defense equals or exceeds damage', () => {
-        const attack = new AttackBehaviour("Weak Attack",  5);
+        const attack = new AttackBehaviour("Weak Attack", 5);
         const attacker = createTestCharacter();
-        const target = createTestCharacter({ defence: 10 });
+        const target = createTestCharacter({defence: 10});
 
         const [updatedAttacker, updatedTarget] = attack.execute(attacker, target);
 
         expect(updatedTarget.stats.hitPoints).toBe(99); // Minimum 1 damage
 
         // Test with defense greatly exceeding damage
-        const toughTarget = createTestCharacter({ defence: 20 });
+        const toughTarget = createTestCharacter({defence: 20});
         const [_, veryToughTarget] = attack.execute(attacker, toughTarget);
         expect(veryToughTarget.stats.hitPoints).toBe(99); // Still minimum 1 damage
     });
@@ -45,7 +45,7 @@ describe('AttackBehaviour', () => {
     it('should deal minimum 1 damage with very high defense', () => {
         const attack = new AttackBehaviour("Normal Attack", 10);
         const attacker = createTestCharacter();
-        const target = createTestCharacter({ defence: 100 });
+        const target = createTestCharacter({defence: 100});
 
         const [_, updatedTarget] = attack.execute(attacker, target);
 
@@ -60,8 +60,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Attack,
                 120
             );
-            const attacker = createTestCharacter({ attack: 10 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({attack: 10});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -77,8 +77,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Defense,
                 150
             );
-            const attacker = createTestCharacter({ defence: 10 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({defence: 10});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -94,8 +94,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Shield,
                 80
             );
-            const attacker = createTestCharacter({ shield: 10 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({shield: 10});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -111,8 +111,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Energy,
                 200
             );
-            const attacker = createTestCharacter({ energy: 10 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({energy: 10});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -128,8 +128,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Health,
                 50
             );
-            const attacker = createTestCharacter({ hitPoints: 100 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({hitPoints: 100});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -145,8 +145,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Attack,
                 33
             );
-            const attacker = createTestCharacter({ attack: 10 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({attack: 10});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10
@@ -162,8 +162,8 @@ describe('AttackBehaviour', () => {
                 AttackScalingStat.Shield,
                 100
             );
-            const attacker = createTestCharacter({ shield: 0 });
-            const target = createTestCharacter({ defence: 0 });
+            const attacker = createTestCharacter({shield: 0});
+            const target = createTestCharacter({defence: 0});
 
             const [_, updatedTarget] = attack.execute(attacker, target);
             // Base damage: 10

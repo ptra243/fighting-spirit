@@ -1,23 +1,19 @@
 ﻿// CharacterEquipment.ts
 import {Accessory, Armor, BaseEquipment, EquipmentType, Weapon} from "../Equipment/EquipmentClassHierarchy";
-import {LogCallbacks} from "../../BattleManager";
 
 export class CharacterEquipment {
     readonly weapon?: Weapon;
     readonly armor?: Armor;
     readonly accessory?: Accessory;
-    private readonly logCallback?: LogCallbacks
 
     constructor(params?: {
         weapon?: Weapon;
         armor?: Armor;
         accessory?: Accessory;
-        logCallback?: LogCallbacks;
     }) {
         this.weapon = params?.weapon;
         this.armor = params?.armor;
         this.accessory = params?.accessory;
-        this.logCallback = params?.logCallback;
     }
 
     addEquipment(newEquipment: BaseEquipment): CharacterEquipment {
@@ -84,7 +80,7 @@ export class CharacterEquipment {
             this.weapon,
             this.armor,
             this.accessory
-        ].filter((item)=> item !== undefined);
+        ].filter((item) => item !== undefined);
     }
 
     calculateTotalStats(): {

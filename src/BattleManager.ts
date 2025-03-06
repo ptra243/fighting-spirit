@@ -1,8 +1,5 @@
 ﻿import {Character} from './types/Character/Character';
 import {BattleLog} from "./types/Battle/BattleLog";
-import {IActionBehaviour} from "./types/Actions/Action";
-import {StatBuilder} from "./types/Character/CharacterStatBuilder";
-import {CharacterStats} from "./types/Character/CharacterStats";
 
 type TurnState = 'player' | 'ai';
 type BattleListener = () => void;
@@ -118,7 +115,6 @@ export class BattleManager {
         if (this.isAnyCharacterDefeated()) {
             errors.push("Battle cannot start as one or both characters are dead.");
         }
-
         if (this.player.chosenActions.length !== (BattleManager.CONFIG.STARTING_REQUIRED_ACTIONS + this.round - 1)) {
             errors.push(`The player needs to choose exactly ${BattleManager.CONFIG.STARTING_REQUIRED_ACTIONS + this.round - 1} actions.`);
         }
@@ -138,20 +134,12 @@ export class BattleManager {
         this.addBattleLog('Battle started!');
 
         // Initialize player with equipment buffs
-        const playerBuilder = new StatBuilder(this.player)
-            .applyEquipmentBuffs();
-        this.player = this.player.cloneWith({
-            stats: playerBuilder.build().stats
-        });
-
+        this.player = this.player.applyOutOfBattleStats();
         // Initialize AI with equipment buffs
-        const aiBuilder = new StatBuilder(this.ai)
-            .applyEquipmentBuffs();
-        this.ai = this.ai.cloneWith({
-            stats: aiBuilder.build().stats
-        });
+        this.ai = this.ai.applyOutOfBattleStats();
 
     }
+
     // Add these new methods
     public pauseBattle(): void {
         if (this.battleState === BattleState.IN_PROGRESS) {
@@ -191,7 +179,6 @@ export class BattleManager {
             if (this.isPaused) {
                 return;
             }
-
             if (this.isAnyCharacterDefeated() || this.hasReachedMaxTurns()) {
                 this.endBattle();
             }
@@ -209,7 +196,6 @@ export class BattleManager {
             ...this.player,
             stats: this.player.stats.incrementActionCounter()
         });
-
         this.ai = new Character({
             ...this.ai,
             stats: this.ai.stats.incrementActionCounter()
@@ -266,8 +252,7 @@ export class BattleManager {
 
         this.battleLog.nextTurn();
         // const [attacker, defender] = this.getAttackerAndDefender();
-        const updatedAttacker = this.applyStartOfTurnEffects(attacker);
-
+        const updatedAttacker = this.applyStartOfTurnEffects(attacker)
         if (updatedAttacker.stats.hitPoints <= 0) {
             this.handleGameOver();
             return;

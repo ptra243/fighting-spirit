@@ -1,9 +1,9 @@
 ﻿// Factories.ts
 import {Action, ActionRequirement} from "./Action";
-import { AttackBehaviour } from "./Behaviours/AttackBehaviour";
+import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
 import {BuffBehaviour, BuffStat} from "./Behaviours/BuffBehaviour";
-import { DamageOverTimeBehaviour } from "./Behaviours/DamageOverTimeBehaviour";
-import { HealBehaviour } from "./Behaviours/HealBehaviour";
+import {DamageOverTimeBehaviour} from "./Behaviours/DamageOverTimeBehaviour";
+import {HealBehaviour} from "./Behaviours/HealBehaviour";
 import {ShieldBehaviour} from "./Behaviours/ShieldAbility";
 import {RechargeBehaviour} from "./Behaviours/RechargeBehaviour";
 
@@ -14,7 +14,7 @@ export const createAttack = (name: string, damage: number) => {
 export const createBuff = (name: string, stat: BuffStat, amount: number, duration: number) => {
     return new BuffBehaviour(name, stat, amount, duration, true);
 };
-export const createDebuff= (name: string, stat: BuffStat, amount: number, duration: number) => {
+export const createDebuff = (name: string, stat: BuffStat, amount: number, duration: number) => {
     return new BuffBehaviour(name, stat, amount, duration, false);
 };
 
@@ -35,6 +35,6 @@ export const createRecharge = (name: string, recharge: number) => {
 };
 
 export const createAction = (name: string, behaviors: any[], cost: number, description: string = '', requirement?: ActionRequirement) => {
-    return new Action({name:name, behaviours: behaviors, energyCost:cost, requirement:requirement});
+    return new Action({name: name, behaviours: behaviors, energyCost: cost, requirement: requirement});
 };
 

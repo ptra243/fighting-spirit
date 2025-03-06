@@ -6,10 +6,10 @@ import {createTestCharacter} from "./testCharacterFactory.test";
 describe('BuffBehaviour', () => {
     it('should apply self buff correctly', () => {
         const buff = new BuffBehaviour(
-            "Attack Buff", 
-            BuffStat.Attack, 
-            5, 
-            3, 
+            "Attack Buff",
+            BuffStat.Attack,
+            5,
+            3,
             true
         );
         const character = createTestCharacter();
@@ -28,10 +28,10 @@ describe('BuffBehaviour', () => {
 
     it('should apply enemy buff correctly', () => {
         const buff = new BuffBehaviour(
-            "Defense Buff", 
-            BuffStat.Defense, 
-            3, 
-            2, 
+            "Defense Buff",
+            BuffStat.Defense,
+            3,
+            2,
             false
         );
         const character = createTestCharacter();
@@ -50,25 +50,25 @@ describe('BuffBehaviour', () => {
 
     it('should generate correct description for self buff', () => {
         const buff = new BuffBehaviour(
-            "Energy Regen Buff", 
-            BuffStat.EnergyRegen, 
-            2, 
-            3, 
+            "Energy Regen Buff",
+            BuffStat.EnergyRegen,
+            2,
+            3,
             true
         );
-        
+
         expect(buff.getDescription()).toBe("Self. Apply 2 Energy Regeneration for 3 turns.");
     });
 
     it('should generate correct description for enemy buff', () => {
         const buff = new BuffBehaviour(
-            "Defense Buff", 
-            BuffStat.Defense, 
-            3, 
-            1, 
+            "Defense Buff",
+            BuffStat.Defense,
+            3,
+            1,
             false
         );
-        
+
         expect(buff.getDescription()).toBe("Enemy. Apply 3 Defense for 1 turn.");
     });
 });

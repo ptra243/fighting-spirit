@@ -1,7 +1,8 @@
 ﻿import {Character} from "../../../../types/Character/Character";
 import {createTestCharacter} from "../Behaviours/testCharacterFactory.test";
 import {
-    ActionTrigger, AttackContext,
+    ActionTrigger,
+    AttackContext,
     BeforeActionContext,
     TriggerCondition,
     TriggerEffect
@@ -110,7 +111,7 @@ describe('Trigger System Tests', () => {
         it('should heal attacker and apply defense buff', () => {
             const trigger = new LifestealTrigger();
             const context = {damage: 20};
-            let udpatedAttacker = attacker.cloneWith({...attacker, stats: attacker.stats.cloneWith({hitPoints:90})});
+            let udpatedAttacker = attacker.cloneWith({...attacker, stats: attacker.stats.cloneWith({hitPoints: 90})});
             const initialHp = udpatedAttacker.stats.hitPoints;
             const [updatedAttacker] = trigger.effect.execute(udpatedAttacker, defender, context);
             expect(updatedAttacker.stats.hitPoints).toBe(initialHp + 4); // 20% of 20

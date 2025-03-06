@@ -1,8 +1,7 @@
 ﻿import {IAttackBehaviour} from "./BehaviourUnion";
 import {Character} from "../../Character/Character";
-import {CharacterStats} from "../../Character/CharacterStats";
 import {TriggerManager} from "../Triggers/TriggerManager";
-import {update} from "lodash";
+import {DamageContext} from "../Triggers/Trigger";
 
 export enum AttackScalingStat {
     Attack = "attack",
@@ -44,22 +43,23 @@ export class AttackBehaviour implements IAttackBehaviour {
 
         // Execute onDamageDealt triggers for the attacker
         if (triggerManager) {
-            [updatedCharacter, updatedTarget] = triggerManager.executeTriggers(
+            console.log('trigger damage ' + totalDamage);
+            [updatedCharacter, updatedTarget] = triggerManager.executeTriggers<DamageContext>(
                 'onDamageDealt',
                 updatedCharacter,
                 updatedTarget,
-                totalDamage
+                {totalDamage: totalDamage}
             );
             // updatedTarget.triggerManager
 
         }
         if (updatedTarget.triggerManager) {
             // Execute onDamageTaken triggers for the target
-            [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers(
+            [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers<DamageContext>(
                 'onDamageTaken',
                 updatedTarget,
                 updatedCharacter,
-                totalDamage
+                {totalDamage: totalDamage}
             );
         }
         // Return updated states of both character and target

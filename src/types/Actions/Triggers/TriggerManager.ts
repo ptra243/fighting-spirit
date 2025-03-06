@@ -1,6 +1,5 @@
 ﻿import {Character} from "../../Character/Character";
-import {ActionTrigger, TriggerType} from "./Trigger";
-import {Action, IActionBehaviour} from "../Action";
+import {ActionTrigger, TriggerContext, TriggerType} from "./Trigger";
 
 // First, let's define a common trigger management system
 export interface TriggerManager {
@@ -10,11 +9,11 @@ export interface TriggerManager {
 
     removeTrigger(trigger: ActionTrigger): void;
 
-    executeTriggers(
+    executeTriggers<T extends TriggerContext>(
         triggerType: TriggerType,
         character: Character,
         target: Character,
-        context?: Action | IActionBehaviour | number
+        context?: T
     ): [Character, Character];
 }
 
@@ -34,17 +33,17 @@ export class BaseTriggerManager implements TriggerManager {
         this.triggers = this.triggers.filter(t => t !== trigger);
     }
 
-    executeTriggers(
+    executeTriggers<T extends TriggerContext>(
         triggerType: TriggerType,
         character: Character,
         target: Character,
-        context?: any
+        context?: T
     ): [Character, Character] {
         let updatedCharacter = character;
         let updatedTarget = target;
 
         for (const trigger of this.triggers) {
-            if (trigger.condition.type !== triggerType) continue;
+            if (trigger.condition.type !== triggerType || trigger.hasBeenTriggered) continue;
 
             if (trigger.condition.chance && Math.random() > trigger.condition.chance) continue;
 
@@ -62,8 +61,16 @@ export class BaseTriggerManager implements TriggerManager {
                     updatedCharacter,
                     updatedTarget
                 );
+            trigger.hasBeenTriggered = true;
         }
 
         return [updatedCharacter, updatedTarget];
+    }
+
+    resetTriggers() {
+        this.triggers.forEach((t) => {
+            t.hasBeenTriggered = false
+        })
+
     }
 }

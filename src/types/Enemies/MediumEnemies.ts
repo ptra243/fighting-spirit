@@ -1,8 +1,6 @@
-﻿
-import {createAction, createAttack, createBuff, createDebuff, createHeal} from "../Actions/BehaviorFactories";
+﻿import {createAction, createAttack, createBuff, createDebuff, createHeal} from "../Actions/BehaviorFactories";
 import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
-import {CharacterStats} from "../Character/CharacterStats";
-import {Character, createCharacter} from "../Character/Character";
+import {createCharacter} from "../Character/Character";
 
 
 // Orc Warrior
@@ -44,10 +42,8 @@ export const eliteGuard = createCharacter(
 );
 
 
-
-
 // Skeleton Fighter
-export const skeletonFighter =createCharacter(
+export const skeletonFighter = createCharacter(
     "Skeleton Fighter",
     40,
     6,
@@ -69,7 +65,6 @@ export const skeletonFighter =createCharacter(
         ], 4), // Stronger AoE-like attack
     ]
 );
-
 
 
 // Bandit Leader

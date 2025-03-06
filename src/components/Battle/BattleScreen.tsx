@@ -5,9 +5,7 @@ import {CharacterCard} from "./CharacterCard";
 import {ActionsList} from "./ActionsList";
 import {BuffsList} from "./BuffsList";
 import {BattleLogView} from "./BattleLogView";
-import {BattleEndScreen} from "../BattleEndScreen/BattleEndScreen";
 import {BattleState} from "../../BattleManager";
-import {Action} from '../../types/Actions/Action';
 
 export const BattleScreen: React.FC<{
     onBattleEnd: () => void;
@@ -19,7 +17,7 @@ export const BattleScreen: React.FC<{
         logs,
         setPlayerActions
     } = useBattleManager();
-
+    const [player, setPlayer] = useState(playerState);
     useEffect(() => {
         if (battleManager.getBattleState() === BattleState.ENDED) {
             onBattleEnd();
@@ -27,7 +25,6 @@ export const BattleScreen: React.FC<{
     }, [battleManager.getBattleState()]);
     // Add state to track pause status
     const [isPaused, setIsPaused] = useState(false);
-
     const handlePauseToggle = () => {
         battleManager.togglePause();
         setIsPaused(battleManager.isPausedState());
@@ -46,7 +43,7 @@ export const BattleScreen: React.FC<{
                 </div>
 
                 <div className="player-side">
-                    <BuffsList character={playerState}/>
+                    <BuffsList character={player}/>
                     <ActionsList isPlayer={true}
                     />
                 </div>

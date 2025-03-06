@@ -1,7 +1,7 @@
 ﻿import {Character} from "../../Character/Character";
-import _ from "lodash";
 import {IBuffBehaviour} from "./BehaviourUnion";
 import {TriggerManager} from "../Triggers/TriggerManager";
+import {BuffContext} from "../Triggers/Trigger";
 
 export enum BuffStat {
     Attack = "attack",
@@ -48,22 +48,22 @@ export class BuffBehaviour implements IBuffBehaviour {
         if (this.isSelfBuff) {
             // Trigger onApplyBuff for self buffs
             if (triggerManager) {
-                [updatedMe, updatedOther] = triggerManager.executeTriggers(
+                [updatedMe, updatedOther] = triggerManager.executeTriggers<BuffContext>(
                     'onApplyBuff',
                     updatedMe,
                     updatedOther,
-                    buffToApply
+                    {buff: buffToApply}
                 );
             }
             updatedMe = me.addBuff(buffToApply);
         } else {
             // Trigger onApplyDebuff for enemy buffs
             if (other.triggerManager) {
-                [updatedMe, updatedOther] = other.triggerManager.executeTriggers(
+                [updatedMe, updatedOther] = other.triggerManager.executeTriggers<BuffContext>(
                     'onApplyDebuff',
                     updatedMe,
                     updatedOther,
-                    buffToApply
+                    {buff: buffToApply}
                 );
             }
             updatedOther = other.addBuff(buffToApply);

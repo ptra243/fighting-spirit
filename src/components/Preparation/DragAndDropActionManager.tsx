@@ -1,20 +1,13 @@
-﻿import {useState} from "react";
-import {
-    DndContext,
-    useDraggable,
-    useDroppable,
-    closestCenter,
-    DragOverlay,
-} from "@dnd-kit/core";
+﻿import React, {useState} from "react";
+import {closestCenter, DndContext, useDraggable, useDroppable,} from "@dnd-kit/core";
 import "../../styles/DragAndDropStyles.css";
-import React from "react";
 import {ActionCard} from "../Cards/ActionCardComponent";
 import {useBattleManager} from "../../context/BattleManagerContext";
 
 
 export default function DragAndDropActions({requiredCards}) {
     const label = `Selected Actions: ${requiredCards} cards required`;
-    const {battleManager} = useBattleManager();
+    const {battleManager, setPlayer} = useBattleManager();
     const character = battleManager.player;
     const [selectedActions, setSelectedActions] = useState(character.chosenActions);
     const [availableActions, setAvailableActions] = useState(
@@ -54,6 +47,7 @@ export default function DragAndDropActions({requiredCards}) {
 
             // Update character chosen actions
             character.chosenActions = newSelectedActions;
+            setPlayer(character);
 
 
         } else if (over.id === "availableActions") {
@@ -68,6 +62,7 @@ export default function DragAndDropActions({requiredCards}) {
             setSelectedActions(newSelectedActions);
 
             character.chosenActions = newSelectedActions;
+            setPlayer(character);
         }
         setActiveId(null);
     };

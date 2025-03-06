@@ -3,7 +3,6 @@ import {CharacterStats} from "../../../types/Character/CharacterStats";
 import {Accessory, Armor, EquipmentType, Weapon} from "../../../types/Equipment/EquipmentClassHierarchy";
 import {StatBuilder} from "../../../types/Character/CharacterStatBuilder";
 import {CharacterEquipment} from "../../../types/Character/CharacterEquipment";
-import {result} from "lodash";
 
 describe('Equipment System Tests', () => {
     let character: Character;
@@ -170,8 +169,8 @@ describe('Equipment System Tests', () => {
                 .takeDamage(damageAmount)
                 .build();
 
-            const damageTakenWithoutArmor = resultWithoutArmor.stats.maxHitPoints-resultWithoutArmor.stats.hitPoints;
-            const damageTakenWithArmor = resultWithArmor.stats.maxHitPoints-resultWithArmor.stats.hitPoints;
+            const damageTakenWithoutArmor = resultWithoutArmor.stats.maxHitPoints - resultWithoutArmor.stats.hitPoints;
+            const damageTakenWithArmor = resultWithArmor.stats.maxHitPoints - resultWithArmor.stats.hitPoints;
             // Calculate actual damage taken by each character
             // Verify that armor reduces damage correctly
 
@@ -181,7 +180,6 @@ describe('Equipment System Tests', () => {
             expect(damageTakenWithArmor).toBe(damageAmount - (characterWithArmor.baseStats.defence + testArmor.boostDefence)); // Base + armor defense
             expect(damageTakenWithoutArmor - damageTakenWithArmor).toBe(testArmor.boostDefence); // Difference should equal armor bonus
         });
-
 
 
         test('should apply equipment attack bonus when calculating damage', () => {

@@ -1,7 +1,6 @@
 ﻿import React, {useEffect, useState} from 'react';
 import "../../styles/CharacterCardStyles.css";
 import {Character} from "../../types/Character/Character";
-import {SoldierSprite} from "../Battle/SoldierSprite";
 
 interface CharacterCardProps {
     character?: Character
