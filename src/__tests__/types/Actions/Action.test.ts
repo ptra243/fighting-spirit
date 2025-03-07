@@ -1,5 +1,5 @@
 ﻿// Mock behaviour for testing
-import {Character} from "../../../types/Character/Character";
+import {Character, characterUtils} from "../../../types/Character/Character";
 import {Action, IActionBehaviour} from "../../../types/Actions/Action";
 import {createTestCharacter} from "./Behaviours/testCharacterFactory.test";
 
@@ -158,7 +158,8 @@ describe('Action', () => {
             });
 
             // Properly set up the character's actions
-            const characterWithActions = character.cloneWith({
+            const characterWithActions = new Character({
+                ...character,
                 chosenActions: [action, action, action],
                 currentAction: 0
             });
@@ -182,7 +183,8 @@ describe('Action', () => {
                 currentAction: 0
             });
 
-            const characterWithActions = baseCharacter.cloneWith({
+            const characterWithActions = new Character({
+                ...baseCharacter,
                 chosenActions: [action, action, action],
                 currentAction: 0
             });
@@ -349,14 +351,10 @@ describe('Action', () => {
     });
     describe('Multiple Behaviours', () => {
         it('should execute multiple damage-dealing behaviours', () => {
-            // Create two mock damage behaviours
             const damageBehaviourOne = new MockBehaviour({
                 name: 'Damage Behaviour 1',
                 execute: (character: Character, target: Character) => {
-                    const updatedTarget = new Character({
-                        ...target,
-                        stats: target.stats.takeDamage(10)
-                    });
+                    const updatedTarget = characterUtils.takeDamage(target, 10, character);
                     return [character, updatedTarget];
                 }
             });
@@ -364,31 +362,24 @@ describe('Action', () => {
             const damageBehaviourTwo = new MockBehaviour({
                 name: 'Damage Behaviour 2',
                 execute: (character: Character, target: Character) => {
-                    const updatedTarget = new Character({
-                        ...target,
-                        stats: target.stats.takeDamage(15)
-                    });
+                    const updatedTarget = characterUtils.takeDamage(target, 15, character);
                     return [character, updatedTarget];
                 }
             });
 
-            // Create an action with both behaviours
             const action = new Action({
                 name: 'Double Damage Action',
                 behaviours: [damageBehaviourOne, damageBehaviourTwo]
             });
 
-
-            // Create test characters
             const character = createTestCharacter();
             const target = createTestCharacter({health: 100});
 
-            // Execute the action
             const [_, updatedTarget] = action.execute(character, target);
 
-            // Verify both behaviours were applied (total damage should be 25)
-            expect(updatedTarget.stats.hitPoints).toBe(85); // 100 - (10-5 defence) - (15-5 defence)
+            expect(updatedTarget.stats.hitPoints).toBe(85);
         });
+
     });
 
 

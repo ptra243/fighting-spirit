@@ -1,4 +1,4 @@
-﻿import {Character} from "../Character/Character";
+﻿import {Character, characterUtils} from "../Character/Character";
 import {Modifier} from './Modifiers/IModifier';
 import {BaseTriggerManager, TriggerManager} from "./Triggers/TriggerManager";
 import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
@@ -77,25 +77,30 @@ export class Action implements ActionConfig {
 
         // If already charging, just update charge progress
         if (character.isCharging) {
-
-            updatedCharacter = character.cloneWith({
+            updatedCharacter = new Character({
+                ...character,
                 chargeTurns: character.chargeTurns - character.stats.chargesPerTurn
             });
+
             // If still charging, return
             if (updatedCharacter.chargeTurns > 0) {
                 return [updatedCharacter, target];
             }
+
             // Charging complete, reset charging state
-            updatedCharacter = updatedCharacter.cloneWith({
+            updatedCharacter = new Character({
+                ...updatedCharacter,
                 isCharging: false,
                 chargeTurns: 0
             });
+
             if (!this.isPrecharge) {
                 const nextActionIndex = character.chosenActions.length > 0
                     ? (character.currentAction + 1) % character.chosenActions.length
                     : 0;
 
-                updatedCharacter = updatedCharacter.cloneWith({
+                updatedCharacter = new Character({
+                    ...updatedCharacter,
                     currentAction: nextActionIndex
                 });
                 return [updatedCharacter, target];
@@ -104,22 +109,24 @@ export class Action implements ActionConfig {
         } else {
             // Not charging - check energy cost before starting
             if (character.stats.energy < this.energyCost) {
-                updatedCharacter = character.recoverEnergy(character.stats.energyRegen, character);
+                updatedCharacter = characterUtils.recoverEnergy(character, character.stats.energyRegen, character);
                 return [updatedCharacter, target];
             }
 
             // Pay energy cost when starting the action
-            updatedCharacter = updatedCharacter.spendEnergy(this.energyCost, this);
+            updatedCharacter = characterUtils.spendEnergy(updatedCharacter, this.energyCost, this);
 
             // Handle starting charge for pre-charge actions
             if (this.isPrecharge && this.chargeTurns > 0) {
-                updatedCharacter = updatedCharacter.cloneWith({
+                updatedCharacter = new Character({
+                    ...updatedCharacter,
                     isCharging: true,
                     chargeTurns: this.chargeTurns,
                 });
                 return [updatedCharacter, target];
             }
         }
+
         // Execute behaviours
         let [afterActionCharacter, afterActionTarget] = this.DoExecuteAction(updatedCharacter, target);
         updatedCharacter = afterActionCharacter;
@@ -127,7 +134,8 @@ export class Action implements ActionConfig {
 
         // Handle starting charge for post-charge actions
         if (!this.isPrecharge && this.chargeTurns > 0 && !character.isCharging) {
-            updatedCharacter = updatedCharacter.cloneWith({
+            updatedCharacter = new Character({
+                ...updatedCharacter,
                 isCharging: true,
                 chargeTurns: this.chargeTurns,
             });
@@ -140,7 +148,8 @@ export class Action implements ActionConfig {
                 ? (character.currentAction + 1) % character.chosenActions.length
                 : 0;
 
-            updatedCharacter = updatedCharacter.cloneWith({
+            updatedCharacter = new Character({
+                ...updatedCharacter,
                 currentAction: nextActionIndex
             });
         }

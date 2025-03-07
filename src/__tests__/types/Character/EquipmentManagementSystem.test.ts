@@ -1,4 +1,4 @@
-﻿import {Character} from "../../../types/Character/Character";
+﻿import {Character, characterUtils} from "../../../types/Character/Character";
 import {CharacterStats} from "../../../types/Character/CharacterStats";
 import {Accessory, Armor, EquipmentType, Weapon} from "../../../types/Equipment/EquipmentClassHierarchy";
 import {StatBuilder} from "../../../types/Character/CharacterStatBuilder";
@@ -51,7 +51,7 @@ describe('Equipment System Tests', () => {
         character = new Character({
             name: 'Test Character',
             stats: baseStats,
-            actions: [],
+            chosenActions: [],
             equipment: new CharacterEquipment()
         });
     });
@@ -151,7 +151,7 @@ describe('Equipment System Tests', () => {
     describe('Equipment Combat Integration', () => {
         test('should apply equipment bonuses when taking damage', () => {
             // Setup characters - one with armor, one without
-            const characterWithArmor = character.addEquipment(testArmor);
+            const characterWithArmor = characterUtils.addEquipment(character, testArmor);
 
             const damageAmount = 50;
 

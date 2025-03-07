@@ -47,7 +47,7 @@ describe('Character', () => {
                 attack: 10,
                 defence: 5
             }),
-            actions: [
+            chosenActions: [
                 createAction("Basic Slash", [createAttack("Basic Slash", 1)], 1)
             ]
         });
@@ -58,7 +58,7 @@ describe('Character', () => {
                 attack: 10,
                 defence: 5
             }),
-            actions: [
+            chosenActions: [
                 createAction("Basic Slash", [createAttack("Basic Slash", 1)], 1)
             ]
         });
@@ -73,7 +73,7 @@ describe('Character', () => {
         });
 
         it('should create deep copies of arrays and objects', () => {
-            expect(baseCharacter.actions).not.toBe(baseCharacter.cloneWith({}).actions);
+            expect(baseCharacter.chosenActions).not.toBe(baseCharacter.cloneWith({}).chosenActions);
             expect(baseCharacter.equipment).not.toBe(baseCharacter.cloneWith({}).equipment);
         });
     });
@@ -128,10 +128,6 @@ describe('Character', () => {
             expect(baseCharacter.getEquipment()).toEqual([]);
         });
 
-        it('should initialize with provided actions', () => {
-            expect(baseCharacter.actions.length).toBe(1);
-            expect(baseCharacter.actions[0].name).toBe("Basic Slash");
-        });
 
         it('should initialize with empty chosen actions', () => {
             expect(baseCharacter.chosenActions).toEqual([]);

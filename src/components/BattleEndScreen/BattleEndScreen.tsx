@@ -3,26 +3,30 @@ import "../../styles/BattleEndScreenStyles.css";
 import {ActionCard} from '../Cards/ActionCardComponent';
 import {Action} from "../../types/Actions/Action";
 import {StatItem} from "../Preparation/StatItemComponent";
-import {useBattleManager} from "../../context/BattleManagerContext";
+import {useAppSelector, useBattleManager} from "../../store/hooks/hooks";
+import {useDispatch} from "react-redux";
+import {AppDispatch} from "../../store/store";
+import {updatePlayerActions} from "../../store/gameSlice";
 
 interface BattleEndScreenProps {
     onContinue: (selectedCard?: Action) => void;
 }
 
 export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({onContinue}) => {
-    const {battleManager, setPlayerActions, aiState,} = useBattleManager();
+    const {battleManager, aiState,} = useBattleManager();
     const [selectedCard, setSelectedCard] = useState<Action | null>(null);
+    const availableActions = useAppSelector((state) => state.game.player?.availableActions);
+
+    const dispatch = useDispatch<AppDispatch>();
 
     const battleLog = battleManager.getBattleLog();
     const summary = battleLog.getSummary();
-    const winner = battleManager.getWinner();
     const opponent = aiState;
     const isVictorious = battleManager.isPlayerVictorious();
 
     const handleContinue = () => {
-        let playerActions = battleManager.player.actions;
-        playerActions.push(selectedCard);
-        setPlayerActions(playerActions)
+        // Create a new array and convert each item back to proper Action instances add selected card
+        dispatch(updatePlayerActions([...availableActions.map(action => new Action(action)), selectedCard]));
         onContinue(selectedCard || undefined);
     };
 
@@ -46,7 +50,7 @@ export const BattleEndScreen: React.FC<BattleEndScreenProps> = ({onContinue}) =>
                             <h3 className="section-header">Choose Your Reward</h3>
                             <div className="selection-content">
                                 <div className="cards-grid">
-                                    {opponent.actions.map((card, index) => (
+                                    {opponent.chosenActions.map((card, index) => (
                                         <div
                                             key={index}
                                             className={`card-container ${selectedCard === card ? 'selected' : ''}`}

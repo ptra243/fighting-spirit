@@ -1,34 +1,41 @@
 ﻿import React, {useEffect, useState} from 'react';
 import '../../styles/BattleScreenStyles.css';
-import {useBattleManager} from "../../context/BattleManagerContext";
 import {CharacterCard} from "./CharacterCard";
 import {ActionsList} from "./ActionsList";
 import {BuffsList} from "./BuffsList";
 import {BattleLogView} from "./BattleLogView";
-import {BattleState} from "../../BattleManager";
+import { useSelector, useDispatch } from 'react-redux';
+import { BattleState } from '../../BattleManager';
+import {setGameStage, updatePlayerState} from '../../store/gameSlice';
+import {useAppSelector} from "../../store/hooks/hooks";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/characterSlice";
+
 
 export const BattleScreen: React.FC<{
     onBattleEnd: () => void;
 }> = ({onBattleEnd}) => {
-    const {
-        battleManager,
-        playerState,
-        aiState,
-        logs,
-        setPlayerActions
-    } = useBattleManager();
-    const [player, setPlayer] = useState(playerState);
+    const dispatch = useDispatch();
+
+    const battleManager = useAppSelector((state) => state.game.battleManager);
+    const player = useAppSelector(selectPlayerCharacter);
+    const ai = useAppSelector(selectAICharacter);
+
     useEffect(() => {
-        if (battleManager.getBattleState() === BattleState.ENDED) {
-            onBattleEnd();
+        if (battleManager?.getBattleState() === BattleState.ENDED) {
+            dispatch(setGameStage('POST_BATTLE'));
         }
-    }, [battleManager.getBattleState()]);
+    }, [battleManager, player, dispatch]);
+
     // Add state to track pause status
     const [isPaused, setIsPaused] = useState(false);
     const handlePauseToggle = () => {
         battleManager.togglePause();
         setIsPaused(battleManager.isPausedState());
     };
+
+    if (!battleManager || !player) {
+        return <div>Loading battle...</div>;
+    }
 
     return (
         <div className="battle-screen">
@@ -54,11 +61,11 @@ export const BattleScreen: React.FC<{
                         <CharacterCard isPlayer={false}/>
                     </div>
                     {/* Battle log now takes full width */}
-                    <BattleLogView entries={logs}/>
+                    <BattleLogView entries={battleManager.getBattleLog()}/>
                 </div>
 
                 <div className="ai-side">
-                    <BuffsList character={aiState}/>
+                    <BuffsList character={ai}/>
                     <ActionsList isPlayer={false}
                     />
                 </div>

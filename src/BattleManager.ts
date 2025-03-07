@@ -1,5 +1,8 @@
-﻿import {Character} from './types/Character/Character';
+﻿import {Character, characterUtils} from './types/Character/Character';
 import {BattleLog} from "./types/Battle/BattleLog";
+import {AppDispatch} from "./store/store";
+import {useDispatch} from "react-redux";
+import { incrementActionCounter } from './store/characterSlice';
 
 type TurnState = 'player' | 'ai';
 type BattleListener = () => void;
@@ -59,8 +62,8 @@ export class BattleManager {
             messageLog: this.addBattleLog.bind(this)
         };
 
-        this.player = player.setLogCallback(callbacks);
-        this.ai = ai.setLogCallback(callbacks);
+        this.player = characterUtils.setLogCallback(player, callbacks);
+        this.ai = characterUtils.setLogCallback(ai, callbacks);
 
         this.currentTurn = 'player';
         this.battleState = BattleState.NOT_STARTED;
@@ -134,9 +137,9 @@ export class BattleManager {
         this.addBattleLog('Battle started!');
 
         // Initialize player with equipment buffs
-        this.player = this.player.applyOutOfBattleStats();
+        this.player = characterUtils.applyOutOfBattleStats(this.player);
         // Initialize AI with equipment buffs
-        this.ai = this.ai.applyOutOfBattleStats();
+        this.ai = characterUtils.applyOutOfBattleStats(this.ai);
 
     }
 
@@ -192,14 +195,12 @@ export class BattleManager {
 
     private processTick(): void {
         // Increment action counters for both characters
-        this.player = new Character({
-            ...this.player,
-            stats: this.player.stats.incrementActionCounter()
-        });
-        this.ai = new Character({
-            ...this.ai,
-            stats: this.ai.stats.incrementActionCounter()
-        });
+
+        const dispatch = useDispatch<AppDispatch>();
+
+        dispatch(incrementActionCounter({ target: 'player' }));
+        dispatch(incrementActionCounter({ target: 'ai' }));
+
 
         // Check if any character can act
         if (this.player.stats.actionCounter >= 100 || this.ai.stats.actionCounter >= 100) {
@@ -266,7 +267,7 @@ export class BattleManager {
 
 
     private applyStartOfTurnEffects(character: Character): Character {
-        return character.applyStartOfTurnEffects();
+        return characterUtils.applyStartOfTurnEffects(character);
     }
 
     private executeAction(attacker: Character, defender: Character): void {

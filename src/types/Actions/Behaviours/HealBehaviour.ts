@@ -1,4 +1,4 @@
-﻿import {Character} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IHealBehaviour} from "./BehaviourUnion";
 
 export class HealBehaviour implements IHealBehaviour {
@@ -12,7 +12,7 @@ export class HealBehaviour implements IHealBehaviour {
     }
 
     execute(character: Character, target: Character): [Character, Character] {
-        const updatedCharacter = character.restoreHealth(this.healAmount, this);
+        const updatedCharacter = characterUtils.restoreHealth(character, this.healAmount, this);
         return [updatedCharacter, target];
     }
 

@@ -1,4 +1,4 @@
-﻿import {Character} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IBuffBehaviour} from "./BehaviourUnion";
 import {TriggerManager} from "../Triggers/TriggerManager";
 import {BuffContext} from "../Triggers/Trigger";
@@ -55,7 +55,7 @@ export class BuffBehaviour implements IBuffBehaviour {
                     {buff: buffToApply}
                 );
             }
-            updatedMe = me.addBuff(buffToApply);
+            updatedMe = characterUtils.addBuff(me, buffToApply);
         } else {
             // Trigger onApplyDebuff for enemy buffs
             if (other.triggerManager) {
@@ -66,7 +66,7 @@ export class BuffBehaviour implements IBuffBehaviour {
                     {buff: buffToApply}
                 );
             }
-            updatedOther = other.addBuff(buffToApply);
+            updatedOther = characterUtils.addBuff(other,buffToApply);
         }
 
         return [updatedMe, updatedOther];

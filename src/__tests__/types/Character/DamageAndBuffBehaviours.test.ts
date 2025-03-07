@@ -25,7 +25,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: [attackBuff]
             });
 
@@ -58,7 +58,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: buffs
             });
 
@@ -91,7 +91,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: debuffs
             });
 
@@ -120,7 +120,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: [buff]
             });
 
@@ -154,7 +154,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: buffs
             });
 
@@ -200,7 +200,7 @@ describe('Character Turn Effects', () => {
             const character = new Character({
                 name: 'Test Character',
                 stats: initialStats,
-                actions: [],
+                chosenActions: [],
                 activeBuffs: buffs,
                 activeDOTs: dots
             });
@@ -223,7 +223,8 @@ describe('Character Turn Effects', () => {
             expect(firstTurn.dots[0].duration).toBe(1); // Remaining DOT has 1 turn left
 
             // Create new character with remaining effects
-            const secondCharacter = character.cloneWith({
+            const secondCharacter = new Character({
+                ...character,
                 stats: firstTurn.stats,
                 activeBuffs: firstTurn.buffs,
                 activeDOTs: firstTurn.dots
@@ -245,7 +246,8 @@ describe('Character Turn Effects', () => {
             expect(secondTurn.stats.hitPoints).toBe(89); // 92 - 3 damage from remaining DOT
 
             // Third turn - all effects expired
-            const thirdCharacter = character.cloneWith({
+            const thirdCharacter = new Character({
+                ...character,
                 stats: secondTurn.stats,
                 activeBuffs: secondTurn.buffs,
                 activeDOTs: secondTurn.dots

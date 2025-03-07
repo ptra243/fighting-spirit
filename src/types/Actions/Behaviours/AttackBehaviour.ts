@@ -1,5 +1,5 @@
 ﻿import {IAttackBehaviour} from "./BehaviourUnion";
-import {Character} from "../../Character/Character";
+import {Character, characterUtils} from "../../Character/Character";
 import {TriggerManager} from "../Triggers/TriggerManager";
 import {DamageContext} from "../Triggers/Trigger";
 
@@ -37,7 +37,7 @@ export class AttackBehaviour implements IAttackBehaviour {
         const totalDamage = this.damage + scaledDamage;
 
         // Apply damage to the target
-        let updatedTarget = target.takeDamage(totalDamage, character, this.ignoreDefence);
+        let updatedTarget = characterUtils.takeDamage(target, totalDamage, character, this.ignoreDefence);
 
         let updatedCharacter = character;
 

@@ -30,7 +30,7 @@ export function createTestCharacter(statoverrides = {}, other = {}) {
             shield: 0,
             ...statoverrides
         }),
-        actions: [],
+        chosenActions: [],
         logCallback: mockLogCallbacks,
         ...other
     });

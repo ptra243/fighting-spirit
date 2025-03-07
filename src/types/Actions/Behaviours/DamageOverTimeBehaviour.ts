@@ -1,4 +1,4 @@
-﻿import {Character} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IDamageOverTimeBehaviour} from "./BehaviourUnion";
 
 export class DamageOverTimeBehaviour implements IDamageOverTimeBehaviour {
@@ -16,9 +16,8 @@ export class DamageOverTimeBehaviour implements IDamageOverTimeBehaviour {
     execute(character: Character, target: Character): [Character, Character] {
         // Apply the debuff (damage over time) to the target
         // const target = this.isSelfBuff ? me : other;
-        target.addDOT(this)
-        const updatedDOTs = target.activeDOTs;
-        return [character.cloneWith({activeDOTs: updatedDOTs}), target];
+        const updatedTarget = characterUtils.addDOT(target, this);
+        return [character, updatedTarget];
     }
 
     getDescription(): string {

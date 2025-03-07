@@ -2,19 +2,28 @@
 import {closestCenter, DndContext, useDraggable, useDroppable,} from "@dnd-kit/core";
 import "../../styles/DragAndDropStyles.css";
 import {ActionCard} from "../Cards/ActionCardComponent";
-import {useBattleManager} from "../../context/BattleManagerContext";
+import {AppDispatch, RootState} from '../../store/store';
+import { setPlayerCharacter } from '../../store/characterSlice';
+import {useDispatch, useSelector} from "react-redux";
+import {useAppSelector} from "../../store/hooks/hooks";
+import {selectPlayerActions} from "../../store/gameSlice";
+// Adjust the import path as needed
+
 
 
 export default function DragAndDropActions({requiredCards}) {
+    const dispatch = useDispatch<AppDispatch>();
+
+    const character = useAppSelector((state) => state.character.playerCharacter);
+    const playerActions = useAppSelector(selectPlayerActions)
     const label = `Selected Actions: ${requiredCards} cards required`;
-    const {battleManager, setPlayer} = useBattleManager();
-    const character = battleManager.player;
-    const [selectedActions, setSelectedActions] = useState(character.chosenActions);
+    const [selectedActions, setSelectedActions] = useState(character.chosenActions || []);
     const [availableActions, setAvailableActions] = useState(
-        character.actions.filter(action => action &&
-            !character.chosenActions.some(chosen => chosen.id === action.id)
+        (playerActions || []).filter(action => action &&
+            !(character.chosenActions || []).some(chosen => chosen.id === action.id)
         )
     );
+
 
     const [activeId, setActiveId] = useState(null);
 
@@ -30,42 +39,42 @@ export default function DragAndDropActions({requiredCards}) {
         const activeAction = findActionById(active.id);
         if (!activeAction) return;
 
-        // Check if we're dropping in the same container where the item originated
         const isInSelectedActions = selectedActions.some(action => action.id === active.id);
         const isInAvailableActions = availableActions.some(action => action.id === active.id);
 
         if (over.id === "selectedActions") {
-            // If the action is already in selected actions, don't do anything
             if (isInSelectedActions) return;
 
-            // Move to selected actions
             const newSelectedActions = [...selectedActions, activeAction];
             const newAvailableActions = availableActions.filter((a) => a.id !== active.id);
 
             setSelectedActions(newSelectedActions);
             setAvailableActions(newAvailableActions);
 
-            // Update character chosen actions
-            character.chosenActions = newSelectedActions;
-            setPlayer(character);
-
+            // Update Redux store instead of using setPlayer
+            dispatch(setPlayerCharacter({
+                ...character,
+                chosenActions: newSelectedActions
+            }));
 
         } else if (over.id === "availableActions") {
-            // If the action is already in available actions, don't do anything
             if (isInAvailableActions) return;
 
-            // Move to available actions
             const newAvailableActions = [...availableActions, activeAction];
             const newSelectedActions = selectedActions.filter((a) => a.id !== active.id);
 
             setAvailableActions(newAvailableActions);
             setSelectedActions(newSelectedActions);
 
-            character.chosenActions = newSelectedActions;
-            setPlayer(character);
+            // Update Redux store
+            dispatch(setPlayerCharacter({
+                ...character,
+                chosenActions: newSelectedActions
+            }));
         }
         setActiveId(null);
     };
+
 
 
     const DraggableItem = ({item}) => {

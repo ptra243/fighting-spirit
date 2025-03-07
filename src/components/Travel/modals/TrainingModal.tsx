@@ -2,7 +2,9 @@
 import styled from 'styled-components';
 import {KnightClass} from "../../../types/Classes/KnightClass";
 import {CharacterClass} from "../../../types/Classes/CharacterClass";
-import {useGameManager} from "../../../context/GameManagerContextProvider";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../../../store/store";
+import {selectPlayerCharacter, setPlayerCharacter} from "../../../store/characterSlice";
 
 const TrainingModal = styled.div`
     position: fixed;
@@ -36,7 +38,7 @@ const AVAILABLE_CLASSES = [
         name: 'Knight',
         constructor: KnightClass,
         description: 'A heavily armored warrior specializing in defense and sword combat.',
-        instanceCreator: () => new KnightClass() // Add this function to create new instances
+        instanceCreator: () => new KnightClass("Knight", null, 0)// Add this function to create new instances
 
     }
     // Add new classes here like:
@@ -50,24 +52,24 @@ const AVAILABLE_CLASSES = [
 const TrainingGroundModal: React.FC<{
     onClose: () => void;
 }> = ({onClose}) => {
-    const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
-    const gm = useGameManager();
-    const [getPlayer, setPlayer] = gm.updatePlayer;
-    const [getCharacter, setCharacter] = gm.updateCharacter;
+    const dispatch = useDispatch<AppDispatch>();
 
+    const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
+    const playerCharacter = useSelector(selectPlayerCharacter);
+    console.log(playerCharacter);
     const handleClassSelection = (classInfo: typeof AVAILABLE_CLASSES[0]) => {
         // Check if player already has the class
 
-        const existingClass = getPlayer().character.classes.find(c => c instanceof classInfo.constructor);
+        const existingClass = playerCharacter.classes.find(c => c instanceof classInfo.constructor);
 
 
         if (!existingClass) {
             // Add the class if player doesn't have it
             const newClass = classInfo.instanceCreator();
 
-            const updatedCharacter = getPlayer().character.addClass(newClass);
+            const updatedCharacter = playerCharacter.addClass(newClass);
             setSelectedClass(newClass);
-            setCharacter(updatedCharacter);
+            dispatch(setPlayerCharacter(updatedCharacter));
         } else {
             // Use existing class instance
             setSelectedClass(existingClass as KnightClass);
@@ -76,13 +78,13 @@ const TrainingGroundModal: React.FC<{
 
     const handleLevelUp = () => {
         if (selectedClass) {
-            const updatedCharacter = selectedClass.levelUp(getCharacter());
-            setCharacter(updatedCharacter);
+            const updatedCharacter = selectedClass.levelUp(playerCharacter);
+            dispatch(setPlayerCharacter(updatedCharacter));
         }
     };
 
     const getClassLevel = (classInfo: typeof AVAILABLE_CLASSES[0]) => {
-        const classInstance = getCharacter().classes.find(c => c instanceof classInfo.constructor);
+        const classInstance = playerCharacter.classes.find(c => c instanceof classInfo.constructor);
         return classInstance ? classInstance.getLevel() : 0;
     };
 

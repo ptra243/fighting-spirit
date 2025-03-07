@@ -1,4 +1,4 @@
-﻿import {Character} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IRechargeBehaviour} from "./BehaviourUnion";
 
 export class RechargeBehaviour implements IRechargeBehaviour {
@@ -12,7 +12,7 @@ export class RechargeBehaviour implements IRechargeBehaviour {
     }
 
     execute(character: Character, target: Character): [Character, Character] {
-        const updatedCharacter = character.recoverEnergy(this.rechargeAmount, this);
+        const updatedCharacter = characterUtils.recoverEnergy(character,this.rechargeAmount, this);
         return [updatedCharacter, target];
     }
 

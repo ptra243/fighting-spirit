@@ -21,7 +21,7 @@ describe('KnightClass', () => {
             let character = createCharacter('Test Knight', 100, 10, 5);
             character = character.setLogCallback(mockLogCallback);
 
-            const knightClass = new KnightClass();
+            const knightClass = new KnightClass("Knight", null, 0);
             character = character.addClass(knightClass).levelUpClass(knightClass.getName());
 
             // Create a test buff
@@ -49,7 +49,7 @@ describe('KnightClass', () => {
         it('should trigger extra attack when reaching level 2', () => {
             // Create a character and add knight class
             let character = createCharacter('Test Knight', 100, 10, 5);
-            const knightClass = new KnightClass();
+            const knightClass = new KnightClass("Knight", null, 0);
             character = character.addClass(knightClass);
 
             // Level up to level 2 to get the extra attack trigger

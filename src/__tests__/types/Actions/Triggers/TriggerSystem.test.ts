@@ -1,4 +1,4 @@
-﻿import {Character} from "../../../../types/Character/Character";
+﻿import {Character, characterUtils} from "../../../../types/Character/Character";
 import {createTestCharacter} from "../Behaviours/testCharacterFactory.test";
 import {
     ActionTrigger,
@@ -9,6 +9,8 @@ import {
 } from "../../../../types/Actions/Triggers/Trigger";
 import {BuffBehaviour, BuffStat} from "../../../../types/Actions/Behaviours/BuffBehaviour";
 import {AttackBehaviour} from "../../../../types/Actions/Behaviours/AttackBehaviour";
+import {createAttack} from "../../../../types/Actions/BehaviorFactories";
+import {CharacterStats} from "../../../../types/Character/CharacterStats";
 
 describe('Trigger System Tests', () => {
     let attacker: Character;
@@ -21,6 +23,7 @@ describe('Trigger System Tests', () => {
 
     describe('BeforeAction Trigger', () => {
         class PreActionBuffTrigger implements ActionTrigger {
+            hasBeenTriggered: false;
             condition: TriggerCondition = {
                 type: 'beforeAction'
             };
@@ -55,6 +58,7 @@ describe('Trigger System Tests', () => {
 
     describe('OnAttack Trigger', () => {
         class CriticalStrikeTrigger implements ActionTrigger {
+            hasBeenTriggered: false;
             condition: TriggerCondition = {
                 type: 'onAttack'
             };
@@ -74,7 +78,7 @@ describe('Trigger System Tests', () => {
 
         it('should apply critical modifiers and extra damage', () => {
             const trigger = new CriticalStrikeTrigger();
-            const context: AttackContext = {damage: 10};
+            const context: AttackContext = {attack: createAttack("Attack", 1), isCritical: false, damageMultiplier: 1};
 
             const [_, __] = trigger.effect.execute(attacker, defender, context);
             expect(context.isCritical).toBe(true);
@@ -88,6 +92,7 @@ describe('Trigger System Tests', () => {
 
     describe('OnDamageDealt Trigger', () => {
         class LifestealTrigger implements ActionTrigger {
+            hasBeenTriggered: false;
             condition: TriggerCondition = {
                 type: 'onDamageDealt'
             };
@@ -95,7 +100,7 @@ describe('Trigger System Tests', () => {
             effect: TriggerEffect = {
                 execute(character: Character, target: Character, context: any): [Character, Character] {
                     const healAmount = Math.floor(context.damage * 0.2);
-                    let updatedCharacter = character.restoreHealth(healAmount, this.name);
+                    let updatedCharacter = characterUtils.restoreHealth(character, healAmount, this.name);
                     return [updatedCharacter, target];
                 },
                 behaviour: new BuffBehaviour(
@@ -111,9 +116,12 @@ describe('Trigger System Tests', () => {
         it('should heal attacker and apply defense buff', () => {
             const trigger = new LifestealTrigger();
             const context = {damage: 20};
-            let udpatedAttacker = attacker.cloneWith({...attacker, stats: attacker.stats.cloneWith({hitPoints: 90})});
-            const initialHp = udpatedAttacker.stats.hitPoints;
-            const [updatedAttacker] = trigger.effect.execute(udpatedAttacker, defender, context);
+            let updatedAttacker = new Character({
+                ...attacker,
+                stats: new CharacterStats({...attacker.stats, hitPoints: 90})
+            });
+            const initialHp = updatedAttacker.stats.hitPoints;
+            [updatedAttacker] = trigger.effect.execute(updatedAttacker, defender, context);
             expect(updatedAttacker.stats.hitPoints).toBe(initialHp + 4); // 20% of 20
 
             const [afterBehaviour] = trigger.effect.behaviour.execute(updatedAttacker, defender);
@@ -124,6 +132,7 @@ describe('Trigger System Tests', () => {
 
     describe('OnDamageTaken Trigger', () => {
         class DamageReductionTrigger implements ActionTrigger {
+            hasBeenTriggered: false;
             condition: TriggerCondition = {
                 type: 'onDamageTaken'
             };
@@ -155,6 +164,7 @@ describe('Trigger System Tests', () => {
 
     describe('OnApplyBuff Trigger', () => {
         class BuffAmplifierTrigger implements ActionTrigger {
+            hasBeenTriggered: false;
             condition: TriggerCondition = {
                 type: 'onApplyBuff'
             };

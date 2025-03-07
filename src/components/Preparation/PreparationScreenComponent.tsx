@@ -1,6 +1,5 @@
 ﻿import React, {useState} from 'react';
 import '../../styles/PreparationScreenStyles.css';
-import {useBattleManager} from "../../context/BattleManagerContext";
 import {EquipmentSection} from './EquipmentSection';
 import {
     ExpandableState,
@@ -10,12 +9,19 @@ import {
 import {StatItem} from "./StatItemComponent";
 import {EnemyPreview} from "./EnemyPreviewComponent";
 import DragAndDropActions from "./DragAndDropActionManager";
+import {useBattleManager} from "../../store/hooks/hooks";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store/store";
+import {characterUtils} from "../../types/Character/Character";
 
 export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
-    const {playerState, battleManager, setPlayer} = useBattleManager();
-    const {player: character, ai: aiStats} = battleManager;
+    const {battleManager} = useBattleManager();
 
-    let playerCharacter = playerState.applyOutOfBattleStats();
+    let playerCharacter = useSelector((state: RootState) => state.character.playerCharacter);
+    const aiCharacter = useSelector((state: RootState) => state.character.aiCharacter);
+
+
+    playerCharacter = characterUtils.applyOutOfBattleStats(playerCharacter);
     const [expandedSections, setExpandedSections] = useState<ExpandableState>({
         stats: false,
         equipment: false
@@ -58,7 +64,7 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
         <div className="preparation-layout">
             <div className="main-content">
                 <div className="player-section">
-                    <h1>{character.name}'s Battle Preparation</h1>
+                    <h1>{playerCharacter.name}'s Battle Preparation</h1>
                     <h1>Battle {battleManager.getRound()}</h1>
                     {/*<div>*/}
                     {/*    /!* First row animation *!/*/}
@@ -83,7 +89,8 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
                             >
                                 {expandedSections.equipment ? '▼' : '▶'} Equipment
                             </button>
-                            {expandedSections.equipment && <EquipmentSection equipment={character.getEquipment()}/>}
+                            {expandedSections.equipment &&
+                                <EquipmentSection equipment={playerCharacter.equipment.getEquippedItems()}/>}
                         </div>
                     </div>
 
@@ -105,7 +112,7 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
                 </div>
             </div>
 
-            <EnemyPreview aiStats={aiStats} onStartBattle={handleStartBattle}/>
+            <EnemyPreview aiStats={aiCharacter} onStartBattle={handleStartBattle}/>
         </div>
     );
 };

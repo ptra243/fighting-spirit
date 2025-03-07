@@ -1,4 +1,4 @@
-﻿import {CharacterStats} from "./CharacterStats";
+﻿import {CharacterStats, statsUtils} from "./CharacterStats";
 import {Character} from "./Character";
 import {BuffBehaviour, BuffStat} from "../Actions/Behaviours/BuffBehaviour";
 import {DamageOverTimeBehaviour} from "../Actions/Behaviours/DamageOverTimeBehaviour";
@@ -18,7 +18,8 @@ export class StatBuilder {
     constructor(character: Character) {
         this.character = character;
         // Start with base stats
-        this.currentStats = character.baseStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...character.baseStats,
             // But override with current values for these specific stats
             hitPoints: character.stats.hitPoints,
             shield: character.stats.shield,
@@ -32,7 +33,8 @@ export class StatBuilder {
 
     applyEquipmentBuffs(): StatBuilder {
         const equipmentBonuses = this.character.equipment.calculateTotalStats();
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             attack: this.currentStats.attack + equipmentBonuses.attack,
             defence: this.currentStats.defence + equipmentBonuses.defence,
             maxHitPoints: this.currentStats.maxHitPoints + equipmentBonuses.hitPoints
@@ -67,7 +69,8 @@ export class StatBuilder {
                 .filter(buff => buff.buffType === buffType)
                 .reduce((sum, buff) => sum + buff.amount, 0);
 
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             attack: applyBuffs(this.currentStats.attack, BuffStat.Attack),
             defence: applyBuffs(this.currentStats.defence, BuffStat.Defense),
             shield: applyBuffs(this.currentStats.shield, BuffStat.Shield),  // Removed the /2
@@ -84,7 +87,7 @@ export class StatBuilder {
         }
 
         this.currentStats = this.currentDots.reduce((stats, dot) => {
-            return stats.takeDamage(dot.damagePerTurn, true);
+            return statsUtils.takeDamage(stats, dot.damagePerTurn, true);
         }, this.currentStats);
 
 
@@ -92,7 +95,8 @@ export class StatBuilder {
     }
 
     applyRegen(): StatBuilder {
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             hitPoints: Math.min(
                 this.currentStats.maxHitPoints,
                 this.character.stats.hitPoints + this.currentStats.hpRegen
@@ -107,12 +111,13 @@ export class StatBuilder {
 
     takeDamage(damage: number, ignoreDefense: boolean = false): StatBuilder {
 
-        this.currentStats = this.currentStats.takeDamage(damage, ignoreDefense);
+        this.currentStats = statsUtils.takeDamage(this.currentStats, damage, ignoreDefense);
         return this;
     }
 
     restoreHealth(amount: number): StatBuilder {
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             hitPoints: Math.min(
                 this.currentStats.maxHitPoints,
                 this.currentStats.hitPoints + amount
@@ -122,7 +127,8 @@ export class StatBuilder {
     }
 
     modifyEnergy(amount: number): StatBuilder {
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             energy: Math.min(
                 this.currentStats.maxEnergy,
                 Math.max(0, this.currentStats.energy + amount)
@@ -134,9 +140,9 @@ export class StatBuilder {
 
     // Add new method to apply class stats
     applyClassStats(): StatBuilder {
-        if (!this.character.getClasses) return this; // For backward compatibility
+        if (!this.character.classes) return this; // For backward compatibility
 
-        const classes = this.character.getClasses();
+        const classes = this.character.classes;
         if (classes.length === 0) return this;  // Add this check
 
         console.log('Classes array:', classes);  // Add this log
@@ -145,10 +151,10 @@ export class StatBuilder {
         const classStats = classes.reduce((totalStats, characterClass) => {
             const stats = characterClass.getCurrentStats();
 
-            return totalStats.add(stats);
+            return statsUtils.add(totalStats, stats);
         }, new CharacterStats({}));
 
-        this.currentStats = this.currentStats.add(classStats);
+        this.currentStats = statsUtils.add(this.currentStats, classStats);
         return this;
     }
 
@@ -174,7 +180,8 @@ export class StatBuilder {
 
     setToFullHP() {
 
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             hitPoints: this.currentStats.maxHitPoints
         });
 
@@ -182,7 +189,8 @@ export class StatBuilder {
     }
 
     decayShield(): StatBuilder {
-        this.currentStats = this.currentStats.cloneWith({
+        this.currentStats = new CharacterStats({
+            ...this.currentStats,
             shield: Math.floor(this.currentStats.shield / 2)
         });
         return this;

@@ -1,13 +1,16 @@
 ﻿import React from "react";
-import {useBattleManager} from "../../context/BattleManagerContext";
+import {useAppSelector} from "../../store/hooks/hooks";
+import {useSelector} from "react-redux";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/characterSlice";
 
 export const ActionsList: React.FC<{
     isPlayer: boolean
 }> = ({isPlayer}) => {
-    const {playerState, aiState} = useBattleManager();
+
 
     // Get current character state
-    const character = isPlayer ? playerState : aiState;
+    const character = isPlayer ?  useSelector(selectPlayerCharacter):  useSelector(selectAICharacter);
+
     return (
         <div className="actions-list">
             <h3>Actions</h3>

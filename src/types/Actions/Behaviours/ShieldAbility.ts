@@ -20,7 +20,7 @@ export class ShieldBehaviour implements IShieldAbility {
             ...me.stats,
             shield: newShieldAmount
         });
-        return [me.cloneWith({stats: newStats}), target];
+        return [new Character({...me, stats: newStats}), target];
     }
 
     getDescription(): string {

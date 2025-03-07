@@ -1,35 +1,48 @@
-﻿import React, {useEffect, useState} from 'react';
-import {useBattleManager} from "../../context/BattleManagerContext";
+﻿import React, {useEffect, useMemo, useState} from 'react';
 import '../../styles/Battle/CharacterCard.css'
+import {useDispatch, useSelector} from "react-redux";
+import {selectAICharacter, selectPlayerCharacter, setAICharacter, setPlayerCharacter} from "../../store/characterSlice";
+import {useBattleManager} from "../../store/hooks/hooks";
+import {AppDispatch} from "../../store/store";
 
 interface CharacterCardProps {
     isPlayer: boolean;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
-    const {playerState, aiState, battleConfig} = useBattleManager();
+    const {battleConfig} = useBattleManager();
+
+    const dispatch = useDispatch<AppDispatch>();
+
+    const playerState = useSelector(selectPlayerCharacter);
+    const aiState = useSelector(selectAICharacter);
+    const characterState = useMemo(() => isPlayer ? playerState : aiState, [isPlayer, playerState, aiState]);
 
     const [speedBarWidth, setSpeedBarWidth] = useState(0);
-    const [character, setCharacter] = useState(isPlayer ? playerState : aiState);
+
 
     const getPercentage = (current: number, max: number) => (current / max) * 100;
 
     useEffect(() => {
         // Reset animation when counter resets
-        if (character.stats.actionCounter === 0) {
+        if (characterState.stats.actionCounter === 0) {
             setSpeedBarWidth(0);
         }
 
         // Animate to the current counter value
-        setSpeedBarWidth(character.stats.actionCounter);
-    }, [character.stats.actionCounter]);
+        setSpeedBarWidth(characterState.stats.actionCounter);
+    }, [characterState.stats.actionCounter]);
 
-    useEffect(() => {
-        setCharacter(isPlayer ? playerState : aiState);
-    }, [playerState, aiState]);
+    //
+    // useEffect(() => {
+    //     const action = isPlayer ? setPlayerCharacter : setAICharacter;
+    //     dispatch(action(characterState));
+    // }, [characterState, isPlayer, dispatch]);
+
+
     return (
         <div className={`character-card ${isPlayer ? 'player-card' : 'ai-card'}`}>
-            <h2>{character.name}</h2>
+            <h2>{characterState.name}</h2>
 
             <div className="stat-bars">
                 <div className="bar-container">
@@ -39,12 +52,12 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
                             className="bar hp-bar"
                             style={{
                                 width: `${getPercentage(
-                                    character.stats.hitPoints,
-                                    character.stats.maxHitPoints
+                                    characterState.stats.hitPoints,
+                                    characterState.stats.maxHitPoints
                                 )}%`
                             }}
                         >
-                            {character.stats.hitPoints}/{character.stats.maxHitPoints}
+                            {characterState.stats.hitPoints}/{characterState.stats.maxHitPoints}
                         </div>
                     </div>
                 </div>
@@ -56,17 +69,17 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
                             className="bar energy-bar"
                             style={{
                                 width: `${getPercentage(
-                                    character.stats.energy,
-                                    character.stats.maxEnergy
+                                    characterState.stats.energy,
+                                    characterState.stats.maxEnergy
                                 )}%`
                             }}
                         >
-                            {character.stats.energy}/{character.stats.maxEnergy}
+                            {characterState.stats.energy}/{characterState.stats.maxEnergy}
                         </div>
                     </div>
                 </div>
 
-                {character.stats.shield > 0 && (
+                {characterState.stats.shield > 0 && (
                     <div className="bar-container">
                         <label>Shield</label>
                         <div className="bar-background">
@@ -74,13 +87,13 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
                                 className="bar shield-bar"
                                 style={{width: '100%'}}
                             >
-                                {character.stats.shield}
+                                {characterState.stats.shield}
                             </div>
                         </div>
                     </div>
                 )}
                 <div className="bar-container">
-                    <label>Speed ({character.stats.speed})</label>
+                    <label>Speed ({characterState.stats.speed})</label>
                     <div className="bar-background">
                         <div
                             className="bar speed-bar"
@@ -89,7 +102,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
                                 transition: `width ${battleConfig.TURN_INTERVAL_MS}ms linear`
                             }}
                         >
-                            {Math.floor(character.stats.actionCounter)}
+                            {Math.floor(characterState.stats.actionCounter)}
                         </div>
                     </div>
                 </div>
@@ -98,10 +111,10 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({isPlayer}) => {
 
             <div className="character-stats">
                 <div className="stat">
-                    <span>Attack:</span> {character.stats.attack}
+                    <span>Attack:</span> {characterState.stats.attack}
                 </div>
                 <div className="stat">
-                    <span>Defence:</span> {character.stats.defence}
+                    <span>Defence:</span> {characterState.stats.defence}
                 </div>
             </div>
         </div>
