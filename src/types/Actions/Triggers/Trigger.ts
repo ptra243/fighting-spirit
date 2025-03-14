@@ -1,7 +1,7 @@
 ﻿// First, define trigger types and interfaces
 import {IActionBehaviour} from "../Action";
 import {CharacterStats} from "../../Character/CharacterStats";
-import {Character} from "../../Character/Character";
+import type {Character} from "../../Character/Character";
 import {BuffBehaviour} from "../Behaviours/BuffBehaviour";
 import {AttackBehaviour} from "../Behaviours/AttackBehaviour";
 

@@ -1,8 +1,9 @@
 ﻿import {Character, characterUtils} from './types/Character/Character';
 import {BattleLog} from "./types/Battle/BattleLog";
-import {AppDispatch} from "./store/store";
-import {useDispatch} from "react-redux";
-import { incrementActionCounter } from './store/characterSlice';
+import {AppDispatch, RootState} from "./store/types";
+import {incrementActionCounter, setAICharacter, setPlayerCharacter} from './store/character/characterSlice';
+import {setLogCallback} from "./store/character/characterThunks";
+import {selectAICharacter, selectPlayerCharacter} from "./store/character/characterSelectors";
 
 type TurnState = 'player' | 'ai';
 type BattleListener = () => void;
@@ -29,17 +30,21 @@ interface BattleConfig {
 export interface Named {
     name: string;
 }
-
+export interface BattleManagerConfig{
+    battleConfig: BattleConfig,
+    round: number,
+    isPaused: boolean
+}
 export class BattleManager {
-    static readonly CONFIG: BattleConfig = {
+    private config: BattleConfig = {
         MAX_TURNS: 20,
         TURN_INTERVAL_MS: 100,
         STARTING_REQUIRED_ACTIONS: 3
     };
 
     // Battle state
-    player: Character;
-    ai: Character;
+    // player: Character;
+    // ai: Character;
     private currentTurn: TurnState;
     private battleState: BattleState;
 
@@ -54,16 +59,22 @@ export class BattleManager {
     // Battle control
     private battleInterval: NodeJS.Timeout | null;
     private isPaused: boolean = false;
+    dispatch: AppDispatch;
+    private readonly getState: () => RootState;
 
-
-    constructor(player: Character, ai: Character, round: number) {
+    constructor( round: number,
+                dispatch: AppDispatch,
+                getState: () => RootState
+    ) {
         const callbacks: LogCallbacks = {
             battleLog: this.logAction.bind(this),
             messageLog: this.addBattleLog.bind(this)
         };
+        // Simply use the passed parameters instead of useSelector
+        this.getState = getState;
 
-        this.player = characterUtils.setLogCallback(player, callbacks);
-        this.ai = characterUtils.setLogCallback(ai, callbacks);
+        this.dispatch = dispatch;
+        dispatch(setLogCallback(callbacks));
 
         this.currentTurn = 'player';
         this.battleState = BattleState.NOT_STARTED;
@@ -73,6 +84,15 @@ export class BattleManager {
 
         this.listeners = new Set();
         this.battleInterval = null;
+    }
+
+    // Use getters to always get fresh state
+    get player(): Character {
+        return selectPlayerCharacter(this.getState());
+    }
+
+    get ai(): Character {
+        return selectAICharacter(this.getState());
     }
 
     private logAction<T extends Named>(source: T,
@@ -98,7 +118,6 @@ export class BattleManager {
     }
 
     public startBattle(): void {
-        console.log(this.battleState);
         if (this.battleState !== BattleState.NOT_STARTED) {
             this.addBattleLog("Battle is already in progress or has ended.");
             return;
@@ -107,10 +126,13 @@ export class BattleManager {
         if (this.canStartBattle().length > 0) {
             return;
         }
-
+        console.log('no problems starting battle')
         this.resetBattleState();
+        console.log('reset battle state')
         this.initializeBattle();
+        console.log('init battle')
         this.startBattleLoop();
+        console.log('looped')
     }
 
     public canStartBattle(): string[] {
@@ -118,8 +140,8 @@ export class BattleManager {
         if (this.isAnyCharacterDefeated()) {
             errors.push("Battle cannot start as one or both characters are dead.");
         }
-        if (this.player.chosenActions.length !== (BattleManager.CONFIG.STARTING_REQUIRED_ACTIONS + this.round - 1)) {
-            errors.push(`The player needs to choose exactly ${BattleManager.CONFIG.STARTING_REQUIRED_ACTIONS + this.round - 1} actions.`);
+        if (this.player.chosenActions.length !== (this.config.STARTING_REQUIRED_ACTIONS + this.round)) {
+            errors.push(`The player needs to choose exactly ${this.config.STARTING_REQUIRED_ACTIONS + this.round - 1} actions.`);
         }
         return errors;
     }
@@ -136,11 +158,8 @@ export class BattleManager {
         this.battleState = BattleState.IN_PROGRESS;
         this.addBattleLog('Battle started!');
 
-        // Initialize player with equipment buffs
-        this.player = characterUtils.applyOutOfBattleStats(this.player);
-        // Initialize AI with equipment buffs
-        this.ai = characterUtils.applyOutOfBattleStats(this.ai);
-
+        this.dispatch(setPlayerCharacter(characterUtils.wrapCharacter(this.player).applyOutOfBattleStats().build()));
+        this.dispatch(setAICharacter(characterUtils.wrapCharacter(this.ai).applyOutOfBattleStats().build()));
     }
 
     // Add these new methods
@@ -180,15 +199,17 @@ export class BattleManager {
         this.battleInterval = setInterval(() => {
             // Check pause state first
             if (this.isPaused) {
+                console.log('is paused')
                 return;
             }
             if (this.isAnyCharacterDefeated() || this.hasReachedMaxTurns()) {
                 this.endBattle();
             }
+            console.log('about to process tick')
             this.processTick();
 
             // Check victory conditions, etc.
-        }, BattleManager.CONFIG.TURN_INTERVAL_MS);
+        }, this.config.TURN_INTERVAL_MS);
 
 
     }
@@ -196,10 +217,29 @@ export class BattleManager {
     private processTick(): void {
         // Increment action counters for both characters
 
-        const dispatch = useDispatch<AppDispatch>();
+        try {
+            console.log('Before dispatches, player counter:', this.player.stats.actionCounter);
 
-        dispatch(incrementActionCounter({ target: 'player' }));
-        dispatch(incrementActionCounter({ target: 'ai' }));
+            this.dispatch(incrementActionCounter({target: 'player'}));
+            console.log('After player dispatch');
+
+            this.dispatch(incrementActionCounter({target: 'ai'}));
+            console.log('After AI dispatch');
+
+            const playerCounter = this.player.stats.actionCounter;
+            console.log('Retrieved player counter:', playerCounter);
+
+            const aiCounter = this.ai.stats.actionCounter;
+            console.log('Retrieved AI counter:', aiCounter);
+
+            console.log({
+                description: 'incremented counter',
+                playerCounter,
+                aiCounter
+            });
+        } catch (error) {
+            console.error('Error in increment counter block:', error);
+        }
 
 
         // Check if any character can act
@@ -234,11 +274,17 @@ export class BattleManager {
     private executeAITurn() {
         this.currentTurn = 'ai'
         this.executeTurn(this.ai, this.player);
+
+        this.dispatch(setPlayerCharacter(characterUtils.wrapCharacter(this.player).applyOutOfBattleStats().build()));
+        this.dispatch(setAICharacter(characterUtils.wrapCharacter(this.ai).applyOutOfBattleStats().build()));
     }
 
     private executePlayerTurn() {
         this.currentTurn = 'player'
         this.executeTurn(this.player, this.ai);
+
+        this.dispatch(setPlayerCharacter(characterUtils.wrapCharacter(this.player).applyOutOfBattleStats().build()));
+        this.dispatch(setAICharacter(characterUtils.wrapCharacter(this.ai).applyOutOfBattleStats().build()));
     }
 
     private executeTurn(attacker: Character, defender: Character): void {
@@ -258,7 +304,12 @@ export class BattleManager {
             this.handleGameOver();
             return;
         }
-
+        //update for the UI after start of turn effects
+        if (this.currentTurn == 'player') {
+            this.dispatch(setPlayerCharacter(characterUtils.wrapCharacter(this.player).applyOutOfBattleStats().build()));
+        } else {
+            this.dispatch(setAICharacter(characterUtils.wrapCharacter(this.ai).applyOutOfBattleStats().build()));
+        }
         this.executeAction(updatedAttacker, defender);
 
         this.turnCount++;
@@ -267,7 +318,7 @@ export class BattleManager {
 
 
     private applyStartOfTurnEffects(character: Character): Character {
-        return characterUtils.applyStartOfTurnEffects(character);
+        return characterUtils.wrapCharacter(character).applyStartOfTurnEffects().build();
     }
 
     private executeAction(attacker: Character, defender: Character): void {
@@ -288,11 +339,12 @@ export class BattleManager {
 
     private updateCharacterState(attacker: Character, defender: Character): void {
         if (this.currentTurn === 'player') {
-            this.player = attacker;
-            this.ai = defender;
+            this.dispatch(setPlayerCharacter(attacker));
+            this.dispatch(setAICharacter(defender));
+
         } else {
-            this.ai = attacker;
-            this.player = defender;
+            this.dispatch(setPlayerCharacter(defender));
+            this.dispatch(setAICharacter(attacker));
         }
 
         if (defender.stats.hitPoints <= 0) {
@@ -327,7 +379,7 @@ export class BattleManager {
     }
 
     private hasReachedMaxTurns(): boolean {
-        return this.turnCount >= BattleManager.CONFIG.MAX_TURNS * this.round;
+        return this.turnCount >= this.config.MAX_TURNS * this.round;
     }
 
     private clearExistingBattleInterval(): void {

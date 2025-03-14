@@ -1,14 +1,7 @@
-﻿import {AppDispatch, RootState} from "./store";
-import {CharacterClass} from "../types/Classes/CharacterClass";
-import {Character} from "../types/Character/Character";
+﻿import {Character} from "../../types/Character/Character";
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {BaseEquipment} from "../types/Equipment/EquipmentClassHierarchy";
-import type { Draft } from 'immer';
-import {Action} from "../types/Actions/Action";
-import {reconstructAction, reconstructCharacter} from "./characterThunks";
-
-
-
+import { CharacterStats } from '../../types/Character/CharacterStats';
+import { IBuffBehaviour, IDamageOverTimeBehaviour } from '../../types/Actions/Behaviours/BehaviourUnion';
 
 interface CharacterState {
     playerCharacter: Character | null;
@@ -19,7 +12,6 @@ interface CharacterState {
         aiHP: number;
         timestamp: number;
     }[];
-
 }
 
 const initialState: CharacterState = {
@@ -27,32 +19,64 @@ const initialState: CharacterState = {
     aiCharacter: null,
     aiCharacters: [],
     battleHistory: []
+};
 
+// Stats utility functions
+const statsUtils = {
+    takeDamage: (stats: CharacterStats, damage: number, ignoreDefence = false): CharacterStats => {
+        let remainingDamage = ignoreDefence ? damage : Math.max(damage - stats.defence, 1);
+        let newShield = stats.shield;
+        let newHitPoints = stats.hitPoints;
+
+        if (newShield > 0) {
+            if (newShield >= remainingDamage) {
+                newShield -= remainingDamage;
+                remainingDamage = 0;
+            } else {
+                remainingDamage -= newShield;
+                newShield = 0;
+            }
+        }
+        newHitPoints = Math.max(newHitPoints - remainingDamage, 0);
+
+        return { ...stats, hitPoints: newHitPoints, shield: newShield };
+    },
+
+    restoreHealth: (stats: CharacterStats, amount: number): CharacterStats => ({
+        ...stats,
+        hitPoints: Math.min(stats.hitPoints + amount, stats.maxHitPoints)
+    }),
+
+    recoverEnergy: (stats: CharacterStats, amount: number): CharacterStats => ({
+        ...stats,
+        energy: Math.min(stats.energy + amount, stats.maxEnergy)
+    }),
+
+    spendEnergy: (stats: CharacterStats, amount: number): CharacterStats => ({
+        ...stats,
+        energy: Math.max(stats.energy - amount, 0)
+    }),
+
+    incrementActionCounter: (stats: CharacterStats): CharacterStats => ({
+        ...stats,
+        actionCounter: Math.min(100, stats.actionCounter + stats.speed)
+    }),
+
+    resetActionCounter: (stats: CharacterStats): CharacterStats => ({
+        ...stats,
+        actionCounter: 0
+    })
 };
 
 const characterSlice = createSlice({
     name: 'character',
     initialState,
     reducers: {
-        setPlayerCharacter: (state, action: PayloadAction<Partial<Character>>) => {
-            if (state.playerCharacter) {
-                state.playerCharacter = {
-                    ...state.playerCharacter,
-                    ...action.payload
-                };
-            } else {
-                state.playerCharacter = action.payload as Character;
-            }
+        setPlayerCharacter: (state, action: PayloadAction<Character>) => {
+            state.playerCharacter = action.payload;
         },
-        setAICharacter: (state, action: PayloadAction<Partial<Character>>) => {
-            if (state.aiCharacter) {
-                state.aiCharacter = {
-                    ...state.aiCharacter,
-                    ...action.payload
-                };
-            } else {
-                state.aiCharacter = action.payload as Character;
-            }
+        setAICharacter: (state, action: PayloadAction<Character>) => {
+            state.aiCharacter = action.payload;
         },
         setAICharacters: (state, action: PayloadAction<Character[]>) => {
             state.aiCharacters = action.payload;
@@ -67,50 +91,86 @@ const characterSlice = createSlice({
             }
         },
         incrementActionCounter: (state, action: PayloadAction<{ target: 'player' | 'ai' }>) => {
-            if (action.payload.target === 'player' && state.playerCharacter) {
-                state.playerCharacter.stats.actionCounter += state.playerCharacter.stats.speed;
-            } else if (action.payload.target === 'ai' && state.aiCharacter) {
-                state.aiCharacter.stats.actionCounter += state.aiCharacter.stats.speed;
+            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
+            if (character) {
+                const updatedStats = statsUtils.incrementActionCounter(character.stats);
+                if (action.payload.target === 'player') {
+                    state.playerCharacter = { ...character, stats: updatedStats };
+                } else {
+                    state.aiCharacter = { ...character, stats: updatedStats };
+                }
             }
         },
-
         resetActionCounter: (state, action: PayloadAction<{ target: 'player' | 'ai' }>) => {
-            if (action.payload.target === 'player' && state.playerCharacter) {
-                state.playerCharacter.stats.actionCounter = 0;
-            } else if (action.payload.target === 'ai' && state.aiCharacter) {
-                state.aiCharacter.stats.actionCounter = 0;
+            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
+            if (character) {
+                const updatedStats = statsUtils.resetActionCounter(character.stats);
+                if (action.payload.target === 'player') {
+                    state.playerCharacter = { ...character, stats: updatedStats };
+                } else {
+                    state.aiCharacter = { ...character, stats: updatedStats };
+                }
+            }
+        },
+        takeDamage: (state, action: PayloadAction<{
+            target: 'player' | 'ai',
+            damage: number,
+            ignoreDefence?: boolean
+        }>) => {
+            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
+            if (character) {
+                const updatedStats = statsUtils.takeDamage(character.stats, action.payload.damage, action.payload.ignoreDefence);
+                if (action.payload.target === 'player') {
+                    state.playerCharacter = { ...character, stats: updatedStats };
+                } else {
+                    state.aiCharacter = { ...character, stats: updatedStats };
+                }
+            }
+        },
+        restoreHealth: (state, action: PayloadAction<{
+            target: 'player' | 'ai',
+            amount: number
+        }>) => {
+            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
+            if (character) {
+                const updatedStats = statsUtils.restoreHealth(character.stats, action.payload.amount);
+                if (action.payload.target === 'player') {
+                    state.playerCharacter = { ...character, stats: updatedStats };
+                } else {
+                    state.aiCharacter = { ...character, stats: updatedStats };
+                }
+            }
+        },
+        modifyEnergy: (state, action: PayloadAction<{
+            target: 'player' | 'ai',
+            amount: number,
+            type: 'spend' | 'recover'
+        }>) => {
+            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
+            if (character) {
+                const updatedStats = action.payload.type === 'spend' 
+                    ? statsUtils.spendEnergy(character.stats, action.payload.amount)
+                    : statsUtils.recoverEnergy(character.stats, action.payload.amount);
+                if (action.payload.target === 'player') {
+                    state.playerCharacter = { ...character, stats: updatedStats };
+                } else {
+                    state.aiCharacter = { ...character, stats: updatedStats };
+                }
             }
         }
-
-
     }
 });
-
-
-// Selectors
-export const selectPlayerCharacter = (state: RootState): Character | null => {
-    return state.character.playerCharacter ? reconstructCharacter(state.character.playerCharacter) : null;
-};
-
-// Selectors
-export const selectAICharacter = (state: RootState): Character | null => {
-    return state.character.aiCharacter ? reconstructCharacter(state.character.aiCharacter) : null;
-};
-
-export const selectPlayerClasses = (state: RootState): CharacterClass[] => {
-    const character = selectPlayerCharacter(state);
-    return character ? character.classes : [];
-};
-
-const selectPlayerActions = (state: RootState) =>
-    state.character.playerCharacter.chosenActions?.map(reconstructAction) ?? [];
 
 export const {
     setPlayerCharacter,
     setAICharacter,
+    setAICharacters,
     recordBattleState,
+    incrementActionCounter,
     resetActionCounter,
-    incrementActionCounter
+    takeDamage,
+    restoreHealth,
+    modifyEnergy
 } = characterSlice.actions;
 
 export default characterSlice.reducer;

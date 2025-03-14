@@ -1,44 +1,14 @@
 ﻿// src/store/gameSlice.ts
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Character} from '../types/Character/Character';
-import {Player} from '../types/Player/Player';
-import {BattleManager} from '../BattleManager';
-import {GameStage} from "../types/GameStageTypes";
-import {CharacterStats} from "../types/Character/CharacterStats";
-import {basicAttack, basicBlock} from '../types/Actions/PredefinedActions/KnightActions';
-import {Action} from "../types/Actions/Action";
-import {setAICharacter, setPlayerCharacter} from "./characterSlice";
-import {reconstructAction} from "./characterThunks";
-import {AppDispatch, RootState} from "./types";
-
-const createInitialPlayer = (): Player => {
-    const character = new Character({
-        name: "Hero",
-        stats: new CharacterStats({
-            maxHitPoints: 50,
-            attack: 2,
-            defence: 2,
-            energyRegen: 2,
-            energy: 1,
-            speed: 25,
-            maxEnergy: 10,
-            hpRegen: 1,
-            chargesPerTurn: 1,
-        }),
-        chosenActions: [basicAttack(), basicAttack(), basicBlock()],
-        sprite: 'knight.jpg'
-    });
-    return {
-        character,                 // Reference to an existing or new Character object
-        gold: 10,                  // Starting gold
-        availableActions: [],      // Initial list of available actions
-        preparationPointsLeft: 0   // Initial preparation points (customize as needed)
-    }
-};
+import {Character} from '../../types/Character/Character';
+import {Player} from '../../types/Player/Player';
+import {GameStage} from "../../types/GameStageTypes";
+import {Action} from "../../types/Actions/Action";
+import {setPlayerCharacter} from "../character/characterSlice";
+import {createInitialPlayer} from "./utils";
 
 interface GameState {
     player: Player | null;
-    battleManager: BattleManager | null;
     currentBattle: number;
     totalBattles: number;
     isGameOver: boolean;
@@ -53,7 +23,6 @@ interface GameState {
 
 const initialState: GameState = {
     player: createInitialPlayer(),
-    battleManager: null,
     currentBattle: 0,
     totalBattles: 10,
     isGameOver: false,
@@ -64,8 +33,6 @@ const initialState: GameState = {
     battleStatus: 'idle',
     winner: null,
     isInBattle: false
-
-
 };
 
 const gameSlice = createSlice({
@@ -77,22 +44,8 @@ const gameSlice = createSlice({
             state.currentBattle = 0;
             state.isGameOver = false;
         },
-        setBattleManager: (state, action: PayloadAction<BattleManager>) => {
-            state.battleManager = action.payload;
-        },
         updatePlayerState: (state, action: PayloadAction<Player>) => {
             state.player = action.payload;
-        },
-        updateGamePlayerCharacter: (state, action: PayloadAction<Character>) => {
-            if (state.player) {
-                state.player.character = action.payload;
-            }
-        },
-        progressBattle: (state) => {
-            state.currentBattle += 1;
-            if (state.currentBattle >= state.totalBattles) {
-                state.isGameOver = true;
-            }
         },
         resetGame: (state) => {
             return initialState;
@@ -108,7 +61,6 @@ const gameSlice = createSlice({
             state.battleStatus = 'finished';
             state.winner = action.payload;
             state.currentActionIndex = 0;
-
         },
         updatePlayerActions: (state, action: PayloadAction<Action[]>) => {
             if (state.player) {
@@ -116,25 +68,9 @@ const gameSlice = createSlice({
                 state.player.availableActions = action.payload.map(actionData => new Action(actionData));
             }
         },
-        setSelectedActions: (state, action: PayloadAction<Action[]>) => {
-            state.selectedActions = action.payload;
-            state.currentActionIndex = 0;
-        },
-        advanceAction: (state) => {
-            state.currentActionIndex =
-                (state.currentActionIndex + 1) % state.selectedActions.length;
-        },
-        setBattleStatus: (state, action: PayloadAction<GameState['battleStatus']>) => {
-            state.battleStatus = action.payload;
-        },
-        incrementTurn: (state) => {
-            state.battleTurn += 1;
-        },
-
         setGameStage: (state, action: PayloadAction<GameStage>) => {
             state.gameStage = action.payload;
         },
-
         checkBattleEnd: (state, action: PayloadAction<{
             playerHP: number,
             aiHP: number
@@ -149,76 +85,18 @@ const gameSlice = createSlice({
                 state.isInBattle = false;
             }
         }
-
-    },
-
-    extraReducers: (builder) => {
-        // Listen for the characterSlice's setPlayerCharacter action
-        builder.addCase(setPlayerCharacter, (state, action: PayloadAction<Partial<Character>>) => {
-            if (state.player) {
-                // First create proper Action instances for the actions array
-                const actions = action.payload.chosenActions?.map(actionData => new Action(actionData));
-
-                const characterData = {
-                    ...state.player.character,
-                    ...action.payload,
-                    chosenActions: actions // Override with proper Action instances
-                } as Character;
-
-                // Create new character with proper actions
-                // Convert to plain object while preserving the Action instances
-                state.player.character = new Character(characterData);
-
-            }
-        });
     }
-
 });
-
-// Create thunks for operations that need to update both game and character state
-export const initializeGameAndCharacter = () => (dispatch: AppDispatch) => {
-    const initialPlayer = createInitialPlayer();
-    dispatch(initializeGame(initialPlayer));
-    dispatch(setPlayerCharacter(initialPlayer.character));
-};
-
-export const updatePlayerState = (player: Player) => (dispatch: AppDispatch) => {
-    dispatch(gameSlice.actions.updatePlayerState(player));
-    dispatch(setPlayerCharacter(player.character));
-};
-
-export const updatePlayerCharacter = (character: Character) => (dispatch: AppDispatch) => {
-    dispatch(setPlayerCharacter(character));
-    // Only update the game state's player character
-    dispatch(updateGamePlayerCharacter(character));
-
-};
-
-export const startBattle = (aiCharacter: Character) => (dispatch: AppDispatch) => {
-
-    dispatch(gameSlice.actions.startBattle());
-    dispatch(setAICharacter(aiCharacter));
-};
-
-// Selectors
-export const selectPlayerActions = (state: RootState): Action[] | null => {
-    return state.game.player.availableActions ? state.game.player.availableActions.map(reconstructAction) : null;
-};
 
 export const {
     initializeGame,
-    setBattleManager,
-    progressBattle,
-    resetGame,
     setGameStage,
-    incrementTurn,
+    updatePlayerActions,
+    startBattle,
     endBattle,
-    setBattleStatus,
-    advanceAction,
-    setSelectedActions,
     checkBattleEnd,
-    updateGamePlayerCharacter,
-    updatePlayerActions
+    resetGame,
+    updatePlayerState
 } = gameSlice.actions;
 
 export default gameSlice.reducer;

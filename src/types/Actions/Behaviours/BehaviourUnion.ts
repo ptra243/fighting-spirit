@@ -1,4 +1,15 @@
-﻿import {IActionBehaviour} from "../Action";
+﻿import { AttackBehaviour } from './AttackBehaviour';
+import { HealBehaviour } from './HealBehaviour';
+
+export type BehaviourType = 'attack' | 'heal' | 'buff' | 'damageOverTime' | 'recharge' | 'shield';
+
+export interface IActionBehaviour {
+  type: BehaviourType;
+  name: string;
+  description: string;
+}
+
+export type ActionBehaviour = AttackBehaviour | HealBehaviour;
 
 export interface IAttackBehaviour extends IActionBehaviour {
     type: "attack";
@@ -10,11 +21,12 @@ export interface IBuffBehaviour extends IActionBehaviour {
     buffType: string;
     amount: number;
     duration: number;
+    isSelfBuff: boolean;
 }
 
 export interface IDamageOverTimeBehaviour extends IActionBehaviour {
     type: "damageOverTime";
-    damagePerTurn: Number;
+    damagePerTurn: number;
     duration: number;
 }
 

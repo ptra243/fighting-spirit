@@ -1,24 +1,24 @@
-﻿import {CharacterStats, statsUtils} from "./CharacterStats";
+﻿import {CharacterStats, statsUtils, createStats} from "./CharacterStats";
 import {Character} from "./Character";
-import {BuffBehaviour, BuffStat} from "../Actions/Behaviours/BuffBehaviour";
-import {DamageOverTimeBehaviour} from "../Actions/Behaviours/DamageOverTimeBehaviour";
+import {IBuffBehaviour, IDamageOverTimeBehaviour} from "../Actions/Behaviours/BehaviourUnion";
+import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
 
 interface BuildResult {
     stats: CharacterStats;
-    buffs: BuffBehaviour[];
-    dots: DamageOverTimeBehaviour[];
+    buffs: IBuffBehaviour[];
+    dots: IDamageOverTimeBehaviour[];
 }
 
 export class StatBuilder {
     private currentStats: CharacterStats;
     private readonly character: Character;
-    private currentBuffs: BuffBehaviour[];
-    private currentDots: DamageOverTimeBehaviour[];
+    private currentBuffs: IBuffBehaviour[];
+    private currentDots: IDamageOverTimeBehaviour[];
 
     constructor(character: Character) {
         this.character = character;
         // Start with base stats
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...character.baseStats,
             // But override with current values for these specific stats
             hitPoints: character.stats.hitPoints,
@@ -33,7 +33,7 @@ export class StatBuilder {
 
     applyEquipmentBuffs(): StatBuilder {
         const equipmentBonuses = this.character.equipment.calculateTotalStats();
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             attack: this.currentStats.attack + equipmentBonuses.attack,
             defence: this.currentStats.defence + equipmentBonuses.defence,
@@ -43,23 +43,28 @@ export class StatBuilder {
         this.currentBuffs = [
             ...this.currentBuffs,
             ...this.character.equipment.getEquippedItems().flatMap(equip =>
-                equip.buffs.map(buff => new BuffBehaviour(buff.name, buff.buffType, buff.amount, 1, buff.isSelfBuff))
-            )
+                equip.buffs.map(buff => ({...buff, duration:1}))
+            ),
         ];
+
 
         return this;
     }
 
     decreaseEffectDurations(): StatBuilder {
         this.currentBuffs = this.currentBuffs
-            .map(buff => buff.clone({duration: buff.duration - 1}))
-            .filter(buff => buff.duration > 0);
+            .map(buff => ({
+                ...buff,
+                duration: buff.duration - 1, // Decrease duration by 1
+            }))
+            .filter(buff => buff.duration > 0); // Keep only buffs with duration > 0
 
         this.currentDots = this.currentDots
-            .map(dot => dot.clone({duration: dot.duration - 1}))
-            .filter(dot => dot.duration > 0);
+            .map(dot => ({...dot, duration: dot.duration - 1 })) // Clone dots with reduced duration
+            .filter(dot => dot.duration > 0); // Keep only dots with duration > 0
 
         return this;
+
     }
 
     applyActiveBuffs(): StatBuilder {
@@ -69,7 +74,7 @@ export class StatBuilder {
                 .filter(buff => buff.buffType === buffType)
                 .reduce((sum, buff) => sum + buff.amount, 0);
 
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             attack: applyBuffs(this.currentStats.attack, BuffStat.Attack),
             defence: applyBuffs(this.currentStats.defence, BuffStat.Defense),
@@ -95,7 +100,7 @@ export class StatBuilder {
     }
 
     applyRegen(): StatBuilder {
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             hitPoints: Math.min(
                 this.currentStats.maxHitPoints,
@@ -116,7 +121,7 @@ export class StatBuilder {
     }
 
     restoreHealth(amount: number): StatBuilder {
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             hitPoints: Math.min(
                 this.currentStats.maxHitPoints,
@@ -127,7 +132,7 @@ export class StatBuilder {
     }
 
     modifyEnergy(amount: number): StatBuilder {
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             energy: Math.min(
                 this.currentStats.maxEnergy,
@@ -152,7 +157,7 @@ export class StatBuilder {
             const stats = characterClass.getCurrentStats();
 
             return statsUtils.add(totalStats, stats);
-        }, new CharacterStats({}));
+        }, createStats({}));
 
         this.currentStats = statsUtils.add(this.currentStats, classStats);
         return this;
@@ -180,7 +185,7 @@ export class StatBuilder {
 
     setToFullHP() {
 
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             hitPoints: this.currentStats.maxHitPoints
         });
@@ -189,7 +194,7 @@ export class StatBuilder {
     }
 
     decayShield(): StatBuilder {
-        this.currentStats = new CharacterStats({
+        this.currentStats = createStats({
             ...this.currentStats,
             shield: Math.floor(this.currentStats.shield / 2)
         });

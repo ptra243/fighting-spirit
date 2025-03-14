@@ -1,9 +1,11 @@
 ﻿// src/tests/BattleManager.test.ts
-import { BattleManager, BattleState } from '../BattleManager';
-import { Character } from '../types/Character/Character';
-import { AppDispatch } from '../store/types';
+
 
 // Mock dependencies
+import {Character} from "../../types/Character/Character";
+import {BattleManager, BattleState} from "../../BattleManager";
+import {AppDispatch} from "../../store/types";
+
 jest.mock('../store/character/characterSlice');
 
 describe('BattleManager', () => {

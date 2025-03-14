@@ -8,59 +8,83 @@ import {
     createRecharge,
 } from "../Actions/BehaviorFactories";
 import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
-
+import {createStats} from "../Character/CharacterStats";
+import {CharacterEquipment} from "../Character/CharacterEquipment";
 
 // Goblin Grunt
-export const goblinGrunt = createCharacter(
-    "Goblin Grunt",
-    30,  // Health
-    1,   // Attack Power
-    0,   // Defense
-    0,   // Health Regen
-    1,   // Energy Regen
-    [
+export const goblinGrunt = createCharacter({
+    name: "Goblin Grunt",
+    stats: createStats({
+        hitPoints: 30,
+        maxHitPoints: 30,
+        attack: 1,
+        defence: 0,
+        hpRegen: 0,
+        energyRegen: 1,
+        energy: 10,
+        maxEnergy: 10,
+        shield: 0,
+        speed: 25,
+        chargesPerTurn: 1,
+        actionCounter: 0
+    }),
+    equipment: new CharacterEquipment(),
+    chosenActions: [
         createAction("Rusty Stab", [createAttack("Rusty Stab", 3)], 1), // Low energy cost stab
         createAction("Scavenge", [createRecharge("Scavenge", 2)], 2),     // Recharge energy
         createAction(
             "Weak Kick",
             [
                 createAttack("Weak Kick", 2),                             // Light attack
-                createDebuff("Defense Down", BuffStat.Defense, -1, 1),       // Reduce defense for 1 turn
+                createDebuff("Defense Down", BuffStat.Defense, -1, 1),    // Reduce defense for 1 turn
             ],
             3
         )
     ]
-);
+});
 
 // Goblin Rogue
-export const goblinRogue = createCharacter(
-    "Goblin Rogue",
-    35,  // Health
-    2,   // Attack Power
-    1,   // Defense
-    1,   // Health Regen
-    2,   // Energy Regen
-    [
+export const goblinRogue = createCharacter({
+    name: "Goblin Rogue",
+    stats: createStats({
+        hitPoints: 35,
+        maxHitPoints: 35,
+        attack: 2,
+        defence: 1,
+        hpRegen: 1,
+        energyRegen: 2,
+        energy: 10,
+        maxEnergy: 10,
+        shield: 0,
+        speed: 25,
+        chargesPerTurn: 1,
+        actionCounter: 0
+    }),
+    equipment: new CharacterEquipment(),
+    chosenActions: [
         createAction(
             "Poison Blade",
             [
                 createAttack("Blade Attack", 1),                          // Light attack
-                createDamageOverTime("Poison", 1, 2),                        // Poison effect for 2 turns
+                createDamageOverTime("Poison", 1, 2),                     // Poison effect for 2 turns
             ],
             2
         ),
         createAction(
-            "Evasive Sidestep",
-            [createBuff("Dodge Boost", BuffStat.Defense, 2, 1)],             // Boost defense temporarily
-            1
+            "Quick Strike",
+            [createAttack("Quick Strike", 3)],                           // Medium attack
+            2
         ),
         createAction(
-            "Quick Stab",
-            [createAttack("Quick Stab", 3)],                              // Moderate attack
-            2
+            "Shadow Step",
+            [
+                createBuff("Evasion Up", BuffStat.Defense, 2, 2),        // Increase defense for 2 turns
+                createRecharge("Focus", 1),                               // Small energy recharge
+            ],
+            3
         )
     ]
-);
+});
 
 // Export Easy Enemies as an array
 export const EasyEnemies = [goblinGrunt, goblinRogue];

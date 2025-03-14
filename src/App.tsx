@@ -1,6 +1,6 @@
-import React from 'react';
-import {initializeGame, initializeGameAndCharacter, setGameStage} from './store/gameSlice';
-import { loadNextBattle } from './store/gameThunks';
+import React, {useEffect} from 'react';
+import {initializeGame, setGameStage} from './store/game/gameSlice';
+import { loadNextBattle } from './store/game/gameThunks';
 import { BattleEndScreen } from './components/BattleEndScreen/BattleEndScreen';
 import { BattleScreen } from './components/Battle/BattleScreen';
 import { PreparationScreen } from './components/Preparation/PreparationScreenComponent';
@@ -8,12 +8,16 @@ import { TravelScreen } from './components/Travel/TravelScreen';
 import {Character} from "./types/Character/Character";
 import {useAppDispatch, useAppSelector} from "./store/hooks/hooks";
 import {Player} from "./types/Player/Player";
+import {initializeGameAndCharacter} from "./store/game/gameSelectors";
 
 export const App: React.FC = () => {
     const dispatch = useAppDispatch();
     const { gameStage, battleManager } = useAppSelector(state => state.game);
+    // Prevent infinite dispatching by using useEffect to call only on mount.
+    useEffect(() => {
+        dispatch(initializeGameAndCharacter());
+    }, [dispatch]); // Empty dependency array means this runs only once on mount.
 
-    dispatch(initializeGameAndCharacter());
     const handleStartBattle = async () => {
         if (battleManager?.canStartBattle().length === 0) {
             dispatch(setGameStage('BATTLE'));
@@ -22,8 +26,9 @@ export const App: React.FC = () => {
     };
 
     const handleTravel = async (selectedCard: any) => {
-        await dispatch(loadNextBattle());
-        dispatch(setGameStage('PREPARE'));
+
+
+        dispatch(setGameStage('TRAVEL'));
     };
 
     const handleGameReset = () => {
@@ -45,6 +50,8 @@ export const App: React.FC = () => {
     };
 
     const handleTravelComplete = () => {
+        dispatch(loadNextBattle());
+        console.log('loadNextBattle was dispatched');
         dispatch(setGameStage('PREPARE'));
     };
 

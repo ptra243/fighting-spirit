@@ -1,4 +1,5 @@
-﻿import {Character, characterUtils} from "../Character/Character";
+﻿import type {Character} from "../Character/Character";
+import {characterUtils, createCharacter} from "../Character/Character";
 import {Modifier} from './Modifiers/IModifier';
 import {BaseTriggerManager, TriggerManager} from "./Triggers/TriggerManager";
 import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
@@ -77,7 +78,7 @@ export class Action implements ActionConfig {
 
         // If already charging, just update charge progress
         if (character.isCharging) {
-            updatedCharacter = new Character({
+            updatedCharacter = createCharacter({
                 ...character,
                 chargeTurns: character.chargeTurns - character.stats.chargesPerTurn
             });
@@ -88,7 +89,7 @@ export class Action implements ActionConfig {
             }
 
             // Charging complete, reset charging state
-            updatedCharacter = new Character({
+            updatedCharacter = createCharacter({
                 ...updatedCharacter,
                 isCharging: false,
                 chargeTurns: 0
@@ -99,7 +100,7 @@ export class Action implements ActionConfig {
                     ? (character.currentAction + 1) % character.chosenActions.length
                     : 0;
 
-                updatedCharacter = new Character({
+                updatedCharacter = createCharacter({
                     ...updatedCharacter,
                     currentAction: nextActionIndex
                 });
@@ -109,16 +110,22 @@ export class Action implements ActionConfig {
         } else {
             // Not charging - check energy cost before starting
             if (character.stats.energy < this.energyCost) {
-                updatedCharacter = characterUtils.recoverEnergy(character, character.stats.energyRegen, character);
+                updatedCharacter = characterUtils
+                    .wrapCharacter(character)
+                    .recoverEnergy(character.stats.energyRegen, character)
+                    .build();
                 return [updatedCharacter, target];
             }
 
             // Pay energy cost when starting the action
-            updatedCharacter = characterUtils.spendEnergy(updatedCharacter, this.energyCost, this);
+            updatedCharacter = characterUtils
+                .wrapCharacter(character)
+                .spendEnergy(this.energyCost, this)
+                .build();
 
             // Handle starting charge for pre-charge actions
             if (this.isPrecharge && this.chargeTurns > 0) {
-                updatedCharacter = new Character({
+                updatedCharacter = createCharacter({
                     ...updatedCharacter,
                     isCharging: true,
                     chargeTurns: this.chargeTurns,
@@ -134,7 +141,7 @@ export class Action implements ActionConfig {
 
         // Handle starting charge for post-charge actions
         if (!this.isPrecharge && this.chargeTurns > 0 && !character.isCharging) {
-            updatedCharacter = new Character({
+            updatedCharacter = createCharacter({
                 ...updatedCharacter,
                 isCharging: true,
                 chargeTurns: this.chargeTurns,
@@ -148,7 +155,7 @@ export class Action implements ActionConfig {
                 ? (character.currentAction + 1) % character.chosenActions.length
                 : 0;
 
-            updatedCharacter = new Character({
+            updatedCharacter = createCharacter({
                 ...updatedCharacter,
                 currentAction: nextActionIndex
             });

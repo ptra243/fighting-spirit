@@ -1,10 +1,10 @@
-﻿import { loadNextBattle } from '../gameThunks';
-import { setBattleManager } from '../gameSlice';
-import { BattleManager } from '../../../BattleManager';
-import { Character } from '../../../types/Character/Character';
-import { selectPlayerCharacter } from '../../character/characterSelectors';
-
+﻿
 // Mock redux-related modules
+import {selectPlayerCharacter} from "../../store/character/characterSelectors";
+import {BattleManager} from "../../BattleManager";
+import {loadNextBattle} from "../../store/game/gameThunks";
+import {setBattleManager} from "../../store/game/gameSlice";
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));

@@ -2,11 +2,11 @@
 import {closestCenter, DndContext, useDraggable, useDroppable,} from "@dnd-kit/core";
 import "../../styles/DragAndDropStyles.css";
 import {ActionCard} from "../Cards/ActionCardComponent";
-import {AppDispatch, RootState} from '../../store/store';
-import { setPlayerCharacter } from '../../store/characterSlice';
+import {AppDispatch, RootState} from '../../store/types';
+import { setPlayerCharacter } from '../../store/character/characterSlice';
 import {useDispatch, useSelector} from "react-redux";
 import {useAppSelector} from "../../store/hooks/hooks";
-import {selectPlayerActions} from "../../store/gameSlice";
+import {selectPlayerActions} from "../../store/game/gameSelectors";
 // Adjust the import path as needed
 
 

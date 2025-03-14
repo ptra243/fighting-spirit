@@ -1,10 +1,11 @@
 ﻿// KnightClass.test.ts
 import {describe, expect, it} from '@jest/globals';
 import {KnightClass} from '../../../types/Classes/KnightClass';
-import {Character, createCharacter} from '../../../types/Character/Character';
+import {Character, characterUtils, createCharacter} from '../../../types/Character/Character';
 import {BuffBehaviour, BuffStat} from '../../../types/Actions/Behaviours/BuffBehaviour';
 import {createAction, createAttack} from '../../../types/Actions/BehaviorFactories';
 import {LogCallbacks, Named} from '../../../BattleManager';
+import {CharacterBuilder} from "../../../types/Character/CharacterBuilder";
 
 
 describe('KnightClass', () => {
@@ -19,10 +20,13 @@ describe('KnightClass', () => {
 
             // Create a character and add knight class
             let character = createCharacter('Test Knight', 100, 10, 5);
-            character = character.setLogCallback(mockLogCallback);
+            character.logCallback = mockLogCallback;
 
             const knightClass = new KnightClass("Knight", null, 0);
-            character = character.addClass(knightClass).levelUpClass(knightClass.getName());
+            character = new CharacterBuilder(character)
+                .addClass(knightClass)
+                .levelUpClass(knightClass.getName())
+                .build();
 
             // Create a test buff
             const buff = new BuffBehaviour(
@@ -50,11 +54,13 @@ describe('KnightClass', () => {
             // Create a character and add knight class
             let character = createCharacter('Test Knight', 100, 10, 5);
             const knightClass = new KnightClass("Knight", null, 0);
-            character = character.addClass(knightClass);
 
             // Level up to level 2 to get the extra attack trigger
-            character = knightClass.levelUp(character);
-            character = knightClass.levelUp(character);
+            let updatedCharacter = characterUtils.wrapCharacter(character)
+                .addClass(knightClass)
+                .levelUpClass(knightClass.getName())
+                .levelUpClass(knightClass.getName())
+                .build();
 
             // Create a test attack action
             const attack = createAction(
@@ -67,7 +73,7 @@ describe('KnightClass', () => {
             const target = createCharacter('Test Target', 100, 10, 0);
 
             // Execute the attack
-            const [_, updatedTarget] = attack.execute(character, target);
+            const [_, updatedTarget] = attack.execute(updatedCharacter, target);
 
             // The target should take damage from both the original attack and the triggered attack
             // Original attack: 20 damage

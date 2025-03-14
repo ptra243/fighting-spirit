@@ -1,19 +1,24 @@
-﻿import {CharacterStats} from "../../../types/Character/CharacterStats";
+﻿import {CharacterStats, createStats} from "../../../types/Character/CharacterStats";
+import {Character} from "../../../types/Character/Character";
+import {statsUtils} from "../../../types/Character/CharacterStats";
 
 describe('CharacterStats', () => {
-    let baseStats: CharacterStats;
+    let baseCharacter: Character;
 
     beforeEach(() => {
-        baseStats = new CharacterStats({
-            hitPoints: 100,
-            maxHitPoints: 100,
-            attack: 10,
-            defence: 5,
-            shield: 20,
-            energy: 5,
-            maxEnergy: 10,
-            energyRegen: 2,
-            hpRegen: 1
+        baseCharacter = new Character({
+            name: "Hero",
+            stats: new CharacterStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                attack: 10,
+                defence: 5,
+                shield: 20,
+                energy: 5,
+                maxEnergy: 10,
+                energyRegen: 2,
+                hpRegen: 1
+            })
         });
     });
 
@@ -37,77 +42,225 @@ describe('CharacterStats', () => {
                 attack: 10
             });
 
+            // Ensure any manual updates won't mutate the original object
+            const updatedStats = new CharacterStats({...originalStats, attack: 15});
+            expect(updatedStats.attack).toBe(15);
+            expect(originalStats.attack).toBe(10);
         });
     });
 
     describe('Damage Handling', () => {
         it('should apply minimum 1 damage when defense exceeds damage', () => {
-            const result = baseStats.takeDamage(4); // Damage less than defense (5)
-            expect(result.shield).toBe(19); // Should still take 1 damage to shield
+            const updatedStats = statsUtils.takeDamage(baseCharacter.stats, 4);
+            const character = new Character({...baseCharacter, stats: updatedStats});
+            expect(character.stats.shield).toBe(19); // Should still take 1 damage to shield.
         });
 
         it('should handle shield damage correctly', () => {
-            const result = baseStats.takeDamage(15);
-            expect(result.shield).toBe(10); // Shield absorbs damage 19-15 = 4
-            expect(result.hitPoints).toBe(100); // HP unchanged
+            const updatedStats = statsUtils.takeDamage(baseCharacter.stats, 15);
+            const character = new Character({...baseCharacter, stats: updatedStats});
+            expect(character.stats.shield).toBe(10); // Shield absorbs partial damage.
+            expect(character.stats.hitPoints).toBe(100); // HP remains unchanged.
         });
 
         it('should handle damage exceeding shield', () => {
-            const result = baseStats.takeDamage(30);
-            expect(result.shield).toBe(0);
-            expect(result.hitPoints).toBe(95); // (30 - 5 defense - 20 shield) = 5 damage to HP
+            const updatedStats = statsUtils.takeDamage(baseCharacter.stats, 30);
+            const character = new Character({...baseCharacter, stats: updatedStats});
+            expect(character.stats.shield).toBe(0);
+            expect(character.stats.hitPoints).toBe(95); // Damage after defense and shield reduction.
         });
 
         it('should not allow negative HP', () => {
-            const result = baseStats.takeDamage(1000);
-            expect(result.hitPoints).toBe(0);
+            const updatedStats = statsUtils.takeDamage(baseCharacter.stats, 1000);
+            const character = new Character({...baseCharacter, stats: updatedStats});
+            expect(character.stats.hitPoints).toBe(0); // HP should not drop below 0.
         });
     });
 
     describe('Health and Energy Management', () => {
         it('should restore health within maxHitPoints limit', () => {
-            //take 75 damage. -5 damage taken from defence, -20 shield, take 50 hp damage
-            const damaged = baseStats.takeDamage(75);
-            const healed = damaged.restoreHealth(30);
-            expect(healed.hitPoints).toBe(80);
+            const damagedStats = statsUtils.takeDamage(baseCharacter.stats, 75); // -20 shield, -50 HP.
+            const restoredStats = statsUtils.restoreHealth(damagedStats, 30);
+            const healedCharacter = new Character({...baseCharacter, stats: restoredStats});
+            expect(healedCharacter.stats.hitPoints).toBe(80);
         });
 
         it('should not exceed maxHitPoints when healing', () => {
-            const healed = baseStats.restoreHealth(50);
-            expect(healed.hitPoints).toBe(100);
+            const restoredStats = statsUtils.restoreHealth(baseCharacter.stats, 50);
+            const healedCharacter = new Character({...baseCharacter, stats: restoredStats});
+            expect(healedCharacter.stats.hitPoints).toBe(100);
         });
 
         it('should handle energy recovery within limits', () => {
-            const recovered = baseStats.recoverEnergy(3);
-            expect(recovered.energy).toBe(8);
+            const recoveredStats = statsUtils.recoverEnergy(baseCharacter.stats, 3);
+            const character = new Character({...baseCharacter, stats: recoveredStats});
+            expect(character.stats.energy).toBe(8);
         });
 
         it('should not exceed maxEnergy when recovering', () => {
-            const recovered = baseStats.recoverEnergy(100);
-            expect(recovered.energy).toBe(10);
+            const recoveredStats = statsUtils.recoverEnergy(baseCharacter.stats, 100);
+            const character = new Character({...baseCharacter, stats: recoveredStats});
+            expect(character.stats.energy).toBe(10);
         });
 
         it('should handle energy spending correctly', () => {
-            const spent = baseStats.spendEnergy(3);
-            expect(spent.energy).toBe(2);
+            const spentStats = statsUtils.spendEnergy(baseCharacter.stats, 3);
+            const character = new Character({...baseCharacter, stats: spentStats});
+            expect(character.stats.energy).toBe(2);
         });
     });
 
     describe('Cloning and Modifications', () => {
-        it('should create a new instance when cloning', () => {
-            const clone = baseStats.cloneWith({});
-            expect(clone).not.toBe(baseStats);
-            expect(clone).toEqual(baseStats);
+        it('should create a new character with identical stats when cloning', () => {
+            const clone = new Character({
+                name: baseCharacter.name,
+                stats: baseCharacter.stats
+            });
+            expect(clone).not.toBe(baseCharacter);
+            expect(clone.stats).toEqual(baseCharacter.stats);
         });
 
         it('should apply overrides when cloning', () => {
-            const modified = baseStats.cloneWith({
+            const modifiedStats = new CharacterStats({
+                ...baseCharacter.stats,
                 attack: 15,
                 defence: 8
             });
-            expect(modified.attack).toBe(15);
-            expect(modified.defence).toBe(8);
-            expect(modified.hitPoints).toBe(baseStats.hitPoints);
+            const modifiedCharacter = new Character({
+                ...baseCharacter,
+                stats: modifiedStats
+            });
+            expect(modifiedCharacter.stats.attack).toBe(15);
+            expect(modifiedCharacter.stats.defence).toBe(8);
+            expect(modifiedCharacter.stats.hitPoints).toBe(baseCharacter.stats.hitPoints); // Other stats unchanged.
         });
+    });
+
+    test('should create character stats with default values', () => {
+        const stats = createStats({});
+        expect(stats.hitPoints).toBe(0);
+        expect(stats.maxHitPoints).toBe(0);
+        expect(stats.shield).toBe(0);
+        expect(stats.attack).toBe(0);
+        expect(stats.defence).toBe(0);
+        expect(stats.energy).toBe(0);
+        expect(stats.maxEnergy).toBe(0);
+        expect(stats.energyRegen).toBe(0);
+        expect(stats.hpRegen).toBe(0);
+    });
+
+    test('should create character stats with provided values', () => {
+        const stats = createStats({
+            hitPoints: 100,
+            maxHitPoints: 100,
+            shield: 0,
+            attack: 10,
+            defence: 5,
+            energy: 100,
+            maxEnergy: 100,
+            energyRegen: 10,
+            hpRegen: 0
+        });
+
+        expect(stats.hitPoints).toBe(100);
+        expect(stats.maxHitPoints).toBe(100);
+        expect(stats.shield).toBe(0);
+        expect(stats.attack).toBe(10);
+        expect(stats.defence).toBe(5);
+        expect(stats.energy).toBe(100);
+        expect(stats.maxEnergy).toBe(100);
+        expect(stats.energyRegen).toBe(10);
+        expect(stats.hpRegen).toBe(0);
+    });
+
+    test('should update stats correctly', () => {
+        const originalStats = createStats({
+            hitPoints: 100,
+            maxHitPoints: 100,
+            shield: 0,
+            attack: 10,
+            defence: 5,
+            energy: 100,
+            maxEnergy: 100,
+            energyRegen: 10,
+            hpRegen: 0
+        });
+
+        const updatedStats = createStats({
+            ...originalStats,
+            attack: 15
+        });
+
+        expect(updatedStats.attack).toBe(15);
+        expect(updatedStats.defence).toBe(5); // Other stats remain unchanged
+    });
+
+    test('should validate stats correctly', () => {
+        const validStats = createStats({
+            hitPoints: 100,
+            maxHitPoints: 100,
+            shield: 0,
+            attack: 10,
+            defence: 5,
+            energy: 100,
+            maxEnergy: 100,
+            energyRegen: 10,
+            hpRegen: 0
+        });
+
+        expect(() => {
+            // This should not throw
+            createStats(validStats);
+        }).not.toThrow();
+
+        expect(() => {
+            // This should throw due to negative hitPoints
+            createStats({
+                ...validStats,
+                hitPoints: -1
+            });
+        }).toThrow();
+
+        expect(() => {
+            // This should throw due to hitPoints > maxHitPoints
+            createStats({
+                ...validStats,
+                hitPoints: 150,
+                maxHitPoints: 100
+            });
+        }).toThrow();
+
+        expect(() => {
+            // This should throw due to negative shield
+            createStats({
+                ...validStats,
+                shield: -1
+            });
+        }).toThrow();
+
+        expect(() => {
+            // This should throw due to negative attack
+            createStats({
+                ...validStats,
+                attack: -1
+            });
+        }).toThrow();
+
+        expect(() => {
+            // This should throw due to negative defence
+            createStats({
+                ...validStats,
+                defence: -1
+            });
+        }).toThrow();
+
+        expect(() => {
+            // This should throw due to energy > maxEnergy
+            createStats({
+                ...validStats,
+                energy: 150,
+                maxEnergy: 100
+            });
+        }).toThrow();
     });
 });

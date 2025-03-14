@@ -1,4 +1,4 @@
-﻿import {Character} from "../../Character/Character";
+﻿import type {Character} from "../../Character/Character";
 import {ActionTrigger, TriggerContext, TriggerType} from "./Trigger";
 
 // First, let's define a common trigger management system

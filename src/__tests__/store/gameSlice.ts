@@ -1,13 +1,13 @@
-﻿import gameReducer, {
+﻿import { createInitialPlayer } from "../../store/game/utils";
+import {Player} from "../../types/Player/Player";
+import gameReducer, {
   initializeGame,
   setBattleManager,
   setGameStage,
   updatePlayerActions
-} from '../gameSlice';
-import { BattleManager } from '../../../BattleManager';
-import { Player } from '../../../types/Player/Player';
-import { Action } from '../../../types/Actions/Action';
-import { createInitialPlayer } from '../utils';
+} from "../../store/game/gameSlice";
+import {BattleManager} from "../../BattleManager";
+import {Action} from "../../types/Actions/Action";
 
 // Mock dependencies
 jest.mock('../../../BattleManager');

@@ -3,8 +3,9 @@ import styled from 'styled-components';
 import {KnightClass} from "../../../types/Classes/KnightClass";
 import {CharacterClass} from "../../../types/Classes/CharacterClass";
 import {useDispatch, useSelector} from "react-redux";
-import {AppDispatch, RootState} from "../../../store/store";
-import {selectPlayerCharacter, setPlayerCharacter} from "../../../store/characterSlice";
+import {AppDispatch, RootState} from "../../../store/types";
+import {selectPlayerCharacter} from "../../../store/character/characterSelectors";
+import {setPlayerCharacter} from "../../../store/character/characterSlice";
 
 const TrainingModal = styled.div`
     position: fixed;
@@ -66,10 +67,9 @@ const TrainingGroundModal: React.FC<{
         if (!existingClass) {
             // Add the class if player doesn't have it
             const newClass = classInfo.instanceCreator();
-
-            const updatedCharacter = playerCharacter.addClass(newClass);
+            playerCharacter.classes = [...playerCharacter.classes, newClass];
             setSelectedClass(newClass);
-            dispatch(setPlayerCharacter(updatedCharacter));
+            dispatch(setPlayerCharacter(playerCharacter));
         } else {
             // Use existing class instance
             setSelectedClass(existingClass as KnightClass);

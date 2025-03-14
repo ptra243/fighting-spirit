@@ -1,24 +1,31 @@
 ﻿// Create helper functions to reconstruct your classes
-import type {Draft} from "immer";
-import {Action} from "../types/Actions/Action";
-import {Character, characterUtils} from "../types/Character/Character";
-import {AppDispatch, RootState} from "./types";
-import {CharacterClass} from "../types/Classes/CharacterClass";
-import {BaseEquipment} from "../types/Equipment/EquipmentClassHierarchy";
-import {selectAICharacter, selectPlayerCharacter, setPlayerCharacter} from "./characterSlice";
-import {LogCallbacks} from "../BattleManager";
+import { RootState, AppDispatch } from "../types";
+import type {Character} from "../../types/Character/Character";
+import {CharacterClass} from "../../types/Classes/CharacterClass";
+import {Draft} from "immer";
+import {selectPlayerCharacter} from "./characterSelectors";
+import {Action} from "../../types/Actions/Action";
+import {setPlayerCharacter} from "./characterSlice";
+import {LogCallbacks} from "../../BattleManager";
+import {Equipment} from "../../types/Equipment/EquipmentClassHierarchy";
+import {CharacterBuilder} from "../../types/Character/CharacterBuilder";
 
 export const reconstructAction = (draftAction: Draft<Action>): Action => {
-    return new Action(draftAction);
+    return new Action({
+        name: draftAction.name,
+        behaviours: draftAction.behaviours,
+        energyCost: draftAction.energyCost,
+        description: draftAction.description,
+        requirement: draftAction.requirement,
+        chargeTurns: draftAction.chargeTurns,
+        isPrecharge: draftAction.isPrecharge,
+        triggerManager: draftAction.triggerManager
+    });
 };
 
 export const reconstructCharacter = (draftCharacter: Draft<Character>): Character => {
-    const character = new Character({...draftCharacter} as Character);
-    // Reconstruct all Action arrays in the character
-    if (draftCharacter.chosenActions) {
-        character.chosenActions = draftCharacter.chosenActions.map(reconstructAction);
-    }
-    return character;
+    const builder = new CharacterBuilder(draftCharacter as Character);
+    return builder.build();
 };
 
 
@@ -27,71 +34,82 @@ export const levelUpPlayerClass = (
     className: string
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
-    if (character) {
-        const updatedCharacter = characterUtils.wrapCharacter(character).levelUpClass(className);
+    if (!character) return;
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .levelUpClass(className)
+        .build();
+
+    dispatch(setPlayerCharacter(updatedCharacter));
 };
 
 export const addClassToPlayer = (
     characterClass: CharacterClass
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
-    if (character) {
-        const updatedCharacter = characterUtils.wrapCharacter(character).addClass(characterClass);
+    if (!character) return;
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .addClass(characterClass)
+        .build();
+
+    dispatch(setPlayerCharacter(updatedCharacter));
 };
 
 export const equipItemToPlayer = (
-    equipment: BaseEquipment
+    equipment: Equipment
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
-    if (character) {
-        const newEquipment = character.equipment.addEquipment(equipment);
-        const updatedCharacter = new Character({
-            ...character,
-            equipment: newEquipment
-        });
+    if (!character) return;
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
+    const updatedEquipment = character.equipment.addEquipment(equipment);
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .addEquipment(updatedEquipment)
+        .build();
+
+    dispatch(setPlayerCharacter(updatedCharacter));
 };
 
 export const unequipItemFromPlayer = (
     equipmentName: string
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
-    if (character) {
-        const newEquipment = character.equipment.removeEquipment(equipmentName);
-        const updatedCharacter = new Character({
-            ...character,
-            equipment: newEquipment
-        });
+    if (!character) return;
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
+    const updatedEquipment = character.equipment.removeEquipment(equipmentName);
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .addEquipment(updatedEquipment)
+        .build();
+
+    dispatch(setPlayerCharacter(updatedCharacter));
 };
 
-export const setLogCallback = (callback: LogCallbacks) => (dispatch: AppDispatch, getState: () => RootState) => {
+export const setLogCallback = (
+    callback: LogCallbacks
+) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
-    if (character) {
-        const updatedCharacter = new Character({
-            ...character,
-            logCallback: callback
-        });
+    if (!character) return;
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
-    const aiCharacter = selectAICharacter(getState());
-    if (aiCharacter) {
-        const updatedCharacter = new Character({
-            ...character,
-            logCallback: callback
-        });
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .setLogCallback(callback)
+        .build();
 
-        dispatch(setPlayerCharacter(updatedCharacter));
-    }
+    dispatch(setPlayerCharacter(updatedCharacter));
+};
+
+export const healToFull = () => (dispatch: AppDispatch, getState: () => RootState) => {
+    const character = selectPlayerCharacter(getState());
+    if (!character) return;
+
+    const builder = new CharacterBuilder(character);
+    const updatedCharacter = builder
+        .healToFull()
+        .build();
+
+    dispatch(setPlayerCharacter(updatedCharacter));
 };

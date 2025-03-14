@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import {useAppSelector} from "../../store/hooks/hooks";
 import {useSelector} from "react-redux";
-import {selectAICharacter, selectPlayerCharacter} from "../../store/characterSlice";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/character/characterSelectors";
 
 export const ActionsList: React.FC<{
     isPlayer: boolean

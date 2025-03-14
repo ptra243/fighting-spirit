@@ -1,9 +1,10 @@
-﻿import { initializeGameAndCharacter, selectPlayerActions } from '../gameSelectors';
-import { initializeGame } from '../gameSlice';
-import { setPlayerCharacter } from '../../character/characterSlice';
-import { Action } from '../../../types/Actions/Action';
-
+﻿
 // Mock createInitialPlayer and createInitialCharacter
+import {initializeGameAndCharacter, selectPlayerActions} from "../../store/game/gameSelectors";
+import {Action} from "../../types/Actions/Action";
+import {initializeGame} from "../../store/game/gameSlice";
+import {setPlayerCharacter} from "../../store/character/characterSlice";
+
 jest.mock('../utils', () => ({
   createInitialPlayer: jest.fn(() => ({ id: 'mockPlayer' })),
   createInitialCharacter: jest.fn(() => ({ id: 'mockCharacter' }))

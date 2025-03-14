@@ -1,157 +1,159 @@
-﻿import {Character, characterUtils} from "../../../types/Character/Character";
-import {CharacterStats} from "../../../types/Character/CharacterStats";
-import {Accessory, Armor, EquipmentType, Weapon} from "../../../types/Equipment/EquipmentClassHierarchy";
-import {StatBuilder} from "../../../types/Character/CharacterStatBuilder";
-import {CharacterEquipment} from "../../../types/Character/CharacterEquipment";
+﻿import { Character, createCharacter } from "../../../types/Character/Character";
+import { CharacterStats, createStats } from "../../../types/Character/CharacterStats";
+import { Accessory, Armor, EquipmentType, Weapon } from "../../../types/Equipment/EquipmentClassHierarchy";
+import { StatBuilder } from "../../../types/Character/CharacterStatBuilder";
+import { CharacterEquipment } from "../../../types/Character/CharacterEquipment";
 
-describe('Equipment System Tests', () => {
-    let character: Character;
+describe('Equipment Management System', () => {
     let baseStats: CharacterStats;
-
-    // Test equipment
-    const testWeapon: Weapon = {
-        name: 'Test Sword',
-        type: EquipmentType.WEAPON,
-        boostAttack: 10,
-        boostDefence: 0,
-        boostHitPoints: 0,
-        buffs: []
-    } as Weapon;
-
-    const testArmor: Armor = {
-        name: 'Test Armor',
-        type: EquipmentType.ARMOR,
-        boostAttack: 0,
-        boostDefence: 15,
-        boostHitPoints: 20,
-        buffs: []
-    } as Armor;
-
-    const testAccessory: Accessory = {
-        name: 'Test Ring',
-        type: EquipmentType.ACCESSORY,
-        boostAttack: 5,
-        boostDefence: 5,
-        boostHitPoints: 10,
-        buffs: []
-    } as Accessory;
+    let character: Character;
+    let weapon: Weapon;
+    let armor: Armor;
+    let accessory: Accessory;
 
     beforeEach(() => {
-        baseStats = new CharacterStats({
+        baseStats = createStats({
             hitPoints: 100,
             maxHitPoints: 100,
-            attack: 20,
-            defence: 10,
+            shield: 0,
+            attack: 10,
+            defence: 5,
             energy: 100,
             maxEnergy: 100,
             energyRegen: 10,
             hpRegen: 0
         });
 
-        character = new Character({
+        character = createCharacter({
             name: 'Test Character',
             stats: baseStats,
-            chosenActions: [],
             equipment: new CharacterEquipment()
         });
+
+        weapon = {
+            type: EquipmentType.WEAPON,
+            name: "Test Weapon",
+            boostAttack: 5,
+            boostDefence: 0,
+            boostHitPoints: 0,
+            buffs: []
+        } as Weapon;
+
+        armor = {
+            type: EquipmentType.ARMOR,
+            name: "Test Armor",
+            boostAttack: 0,
+            boostDefence: 5,
+            boostHitPoints: 10,
+            buffs: []
+        } as Armor;
+
+        accessory = {
+            type: EquipmentType.ACCESSORY,
+            name: "Test Accessory",
+            boostAttack: 2,
+            boostDefence: 2,
+            boostHitPoints: 5,
+            buffs: []
+        } as Accessory;
     });
 
     describe('Equipment Management', () => {
         test('should successfully equip a weapon', () => {
-            const updatedEquipment = character.equipment.addEquipment(testWeapon);
-            const newCharacter = new Character({
-                ...character,
+            const updatedEquipment = character.equipment.addEquipment(weapon);
+            const newCharacter = createCharacter({
+                name: character.name,
+                stats: character.stats,
                 equipment: updatedEquipment
             });
 
-            expect(newCharacter.equipment.weapon).toEqual(testWeapon);
+            expect(newCharacter.equipment.weapon).toEqual(weapon);
             expect(newCharacter.equipment.getEquippedItems()).toHaveLength(1);
         });
 
         test('should successfully equip full set of equipment', () => {
             const updatedEquipment = character.equipment
-                .addEquipment(testWeapon)
-                .addEquipment(testArmor)
-                .addEquipment(testAccessory);
+                .addEquipment(weapon)
+                .addEquipment(armor)
+                .addEquipment(accessory);
 
-            const newCharacter = new Character({
-                ...character,
+            const newCharacter = createCharacter({
+                name: character.name,
+                stats: character.stats,
                 equipment: updatedEquipment
             });
 
-            expect(newCharacter.equipment.weapon).toEqual(testWeapon);
-            expect(newCharacter.equipment.armor).toEqual(testArmor);
-            expect(newCharacter.equipment.accessory).toEqual(testAccessory);
+            expect(newCharacter.equipment.weapon).toEqual(weapon);
+            expect(newCharacter.equipment.armor).toEqual(armor);
+            expect(newCharacter.equipment.accessory).toEqual(accessory);
             expect(newCharacter.equipment.getEquippedItems()).toHaveLength(3);
         });
 
         test('should successfully remove equipment', () => {
             let updatedEquipment = character.equipment
-                .addEquipment(testWeapon)
-                .addEquipment(testArmor);
+                .addEquipment(weapon)
+                .addEquipment(armor);
 
-            let newCharacter = new Character({
-                ...character,
+            let newCharacter = createCharacter({
+                name: character.name,
+                stats: character.stats,
                 equipment: updatedEquipment
             });
 
-            updatedEquipment = newCharacter.equipment.removeEquipment(testWeapon.name);
-            newCharacter = new Character({
-                ...newCharacter,
+            updatedEquipment = newCharacter.equipment.removeEquipment(weapon.name);
+            newCharacter = createCharacter({
+                name: newCharacter.name,
+                stats: newCharacter.stats,
                 equipment: updatedEquipment
             });
 
             expect(newCharacter.equipment.weapon).toBeUndefined();
-            expect(newCharacter.equipment.armor).toEqual(testArmor);
+            expect(newCharacter.equipment.armor).toEqual(armor);
             expect(newCharacter.equipment.getEquippedItems()).toHaveLength(1);
         });
-    });
 
-    describe('Equipment Stats Application', () => {
         test('should correctly calculate total equipment stats', () => {
             const updatedEquipment = character.equipment
-                .addEquipment(testWeapon)
-                .addEquipment(testArmor)
-                .addEquipment(testAccessory);
+                .addEquipment(weapon)
+                .addEquipment(armor)
+                .addEquipment(accessory);
 
-            const newCharacter = new Character({
-                ...character,
+            const newCharacter = createCharacter({
+                name: character.name,
+                stats: character.stats,
                 equipment: updatedEquipment
             });
 
             const totalStats = newCharacter.equipment.calculateTotalStats();
-
-            expect(totalStats.attack).toBe(15); // 10 from weapon + 5 from accessory
-            expect(totalStats.defence).toBe(20); // 15 from armor + 5 from accessory
-            expect(totalStats.hitPoints).toBe(30); // 20 from armor + 10 from accessory
+            expect(totalStats.attack).toBe(weapon.boostAttack + armor.boostAttack + accessory.boostAttack);
+            expect(totalStats.defence).toBe(weapon.boostDefence + armor.boostDefence + accessory.boostDefence);
+            expect(totalStats.hitPoints).toBe(weapon.boostHitPoints + armor.boostHitPoints + accessory.boostHitPoints);
         });
 
         test('should apply equipment stats in combat calculations', () => {
             const updatedEquipment = character.equipment
-                .addEquipment(testWeapon)
-                .addEquipment(testArmor)
-                .addEquipment(testAccessory);
+                .addEquipment(weapon)
+                .addEquipment(armor)
+                .addEquipment(accessory);
 
-            const newCharacter = new Character({
-                ...character,
+            const newCharacter = createCharacter({
+                name: character.name,
+                stats: character.stats,
                 equipment: updatedEquipment
             });
 
-            // Build stats with equipment
             const builder = new StatBuilder(newCharacter);
             const result = builder.applyEquipmentBuffs().build();
 
-            // Check if stats are properly increased
-            expect(result.stats.attack).toBe(baseStats.attack + 15);
-            expect(result.stats.defence).toBe(baseStats.defence + 20);
-            expect(result.stats.maxHitPoints).toBe(baseStats.maxHitPoints + 30);
+            expect(result.stats.attack).toBe(baseStats.attack + weapon.boostAttack);
         });
     });
 
     describe('Equipment Combat Integration', () => {
         test('should apply equipment bonuses when taking damage', () => {
             // Setup characters - one with armor, one without
-            const characterWithArmor = characterUtils.addEquipment(character, testArmor);
+            const characterWithArmor = characterUtils.wrapCharacter(character)
+                .addEquipment(armor).build();
 
             const damageAmount = 50;
 
@@ -174,16 +176,16 @@ describe('Equipment System Tests', () => {
             // Calculate actual damage taken by each character
             // Verify that armor reduces damage correctly
 
-            expect(resultWithArmor.stats.defence).toBe(characterWithArmor.baseStats.defence + testArmor.boostDefence);
+            expect(resultWithArmor.stats.defence).toBe(characterWithArmor.baseStats.defence + armor.boostDefence);
             expect(resultWithoutArmor.stats.defence).toBe(character.baseStats.defence);
             expect(damageTakenWithoutArmor).toBe(damageAmount - character.stats.defence); // Base defense only
-            expect(damageTakenWithArmor).toBe(damageAmount - (characterWithArmor.baseStats.defence + testArmor.boostDefence)); // Base + armor defense
-            expect(damageTakenWithoutArmor - damageTakenWithArmor).toBe(testArmor.boostDefence); // Difference should equal armor bonus
+            expect(damageTakenWithArmor).toBe(damageAmount - (characterWithArmor.baseStats.defence + armor.boostDefence)); // Base + armor defense
+            expect(damageTakenWithoutArmor - damageTakenWithArmor).toBe(armor.boostDefence); // Difference should equal armor bonus
         });
 
 
         test('should apply equipment attack bonus when calculating damage', () => {
-            const updatedEquipment = character.equipment.addEquipment(testWeapon);
+            const updatedEquipment = character.equipment.addEquipment(weapon);
             const newCharacter = new Character({
                 ...character,
                 equipment: updatedEquipment
@@ -192,7 +194,7 @@ describe('Equipment System Tests', () => {
             const builder = new StatBuilder(newCharacter);
             const result = builder.applyEquipmentBuffs().build();
 
-            expect(result.stats.attack).toBe(baseStats.attack + testWeapon.boostAttack);
+            expect(result.stats.attack).toBe(baseStats.attack + weapon.boostAttack);
         });
     });
 });

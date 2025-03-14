@@ -1,9 +1,9 @@
 ﻿import React, {useEffect, useMemo, useState} from 'react';
 import '../../styles/Battle/CharacterCard.css'
 import {useDispatch, useSelector} from "react-redux";
-import {selectAICharacter, selectPlayerCharacter, setAICharacter, setPlayerCharacter} from "../../store/characterSlice";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/character/characterSelectors";
 import {useBattleManager} from "../../store/hooks/hooks";
-import {AppDispatch} from "../../store/store";
+import {AppDispatch} from "../../store/types";
 
 interface CharacterCardProps {
     isPlayer: boolean;

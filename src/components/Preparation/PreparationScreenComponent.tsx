@@ -11,17 +11,17 @@ import {EnemyPreview} from "./EnemyPreviewComponent";
 import DragAndDropActions from "./DragAndDropActionManager";
 import {useBattleManager} from "../../store/hooks/hooks";
 import {useSelector} from "react-redux";
-import {RootState} from "../../store/store";
+import {RootState} from "../../store/types";
 import {characterUtils} from "../../types/Character/Character";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/character/characterSelectors";
 
 export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
     const {battleManager} = useBattleManager();
 
-    let playerCharacter = useSelector((state: RootState) => state.character.playerCharacter);
-    const aiCharacter = useSelector((state: RootState) => state.character.aiCharacter);
+    let playerCharacter = useSelector(selectPlayerCharacter);
+    const aiCharacter = useSelector(selectAICharacter);
 
-
-    playerCharacter = characterUtils.applyOutOfBattleStats(playerCharacter);
+    playerCharacter = characterUtils.wrapCharacter(playerCharacter).applyOutOfBattleStats().build();
     const [expandedSections, setExpandedSections] = useState<ExpandableState>({
         stats: false,
         equipment: false
@@ -32,7 +32,7 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
         hasAttempted: false
     });
     let requiredCards: number = battleManager.getRound();
-    requiredCards += 2;
+    requiredCards += 3;
 
 
     const handleStartBattle = () => {

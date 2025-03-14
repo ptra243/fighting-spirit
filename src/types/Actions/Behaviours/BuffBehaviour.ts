@@ -1,4 +1,5 @@
-﻿import {Character, characterUtils} from "../../Character/Character";
+﻿import type {Character} from "../../Character/Character";
+import {characterUtils} from "../../Character/Character";
 import {IBuffBehaviour} from "./BehaviourUnion";
 import {TriggerManager} from "../Triggers/TriggerManager";
 import {BuffContext} from "../Triggers/Trigger";
@@ -17,14 +18,17 @@ export class BuffBehaviour implements IBuffBehaviour {
     buffType: BuffStat; // Type of stat to boost
     amount: number; // Amount by which to boost the stat
     duration: number; // Number of turns boost lasts
-    isSelfBuff: boolean
+    isSelfBuff: boolean;
+    description: string;
 
     constructor(name: string, boostType: BuffStat, boostAmount: number, duration: number, isSelfBuff: boolean = true) {
         this.name = name;
-        this.buffType = boostType
+        this.type = "buff";
+        this.buffType = boostType;
         this.amount = boostAmount;
         this.duration = duration;
         this.isSelfBuff = isSelfBuff;
+        this.description = `Increases ${boostType} by ${boostAmount} for ${duration} turns`;
     }
 
     clone(updated: Partial<BuffBehaviour>): BuffBehaviour {
@@ -35,7 +39,6 @@ export class BuffBehaviour implements IBuffBehaviour {
             updated.duration ?? this.duration,
             updated.isSelfBuff ?? this.isSelfBuff
         );
-
     }
 
     execute(me: Character, other: Character, triggerManager?: TriggerManager): [Character, Character] {
@@ -55,7 +58,7 @@ export class BuffBehaviour implements IBuffBehaviour {
                     {buff: buffToApply}
                 );
             }
-            updatedMe = characterUtils.addBuff(me, buffToApply);
+            updatedMe = characterUtils.wrapCharacter(me).addBuff(buffToApply).build();
         } else {
             // Trigger onApplyDebuff for enemy buffs
             if (other.triggerManager) {
@@ -66,11 +69,10 @@ export class BuffBehaviour implements IBuffBehaviour {
                     {buff: buffToApply}
                 );
             }
-            updatedOther = characterUtils.addBuff(other,buffToApply);
+            updatedOther = characterUtils.wrapCharacter(other).addBuff(buffToApply).build();
         }
 
         return [updatedMe, updatedOther];
-
     }
 
     getDescription(): string {
@@ -105,6 +107,4 @@ export class BuffBehaviour implements IBuffBehaviour {
 
         return description;
     }
-
-
 }

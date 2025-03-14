@@ -4,7 +4,7 @@ import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
 import {BuffBehaviour, BuffStat} from "./Behaviours/BuffBehaviour";
 import {DamageOverTimeBehaviour} from "./Behaviours/DamageOverTimeBehaviour";
 import {HealBehaviour} from "./Behaviours/HealBehaviour";
-import {ShieldBehaviour} from "./Behaviours/ShieldAbility";
+import {ShieldBehaviour} from "./Behaviours/ShieldBehaviour";
 import {RechargeBehaviour} from "./Behaviours/RechargeBehaviour";
 
 export const createAttack = (name: string, damage: number) => {

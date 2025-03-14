@@ -1,8 +1,9 @@
 ﻿import React from 'react';
 import {Equipment} from '../../types/Equipment/Equipment';
+import {BaseEquipment} from "../../types/Equipment/EquipmentClassHierarchy";
 
 interface EquipmentSectionProps {
-    equipment: Equipment[];
+    equipment: BaseEquipment[];
 }
 
 export const EquipmentSection: React.FC<EquipmentSectionProps> = ({equipment}) => (

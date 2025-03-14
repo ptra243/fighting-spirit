@@ -1,14 +1,16 @@
-﻿import {CharacterStats} from "../../../types/Character/CharacterStats";
-import {BuffBehaviour, BuffStat} from "../../../types/Actions/Behaviours/BuffBehaviour";
-import {Character} from "../../../types/Character/Character";
-import {StatBuilder} from "../../../types/Character/CharacterStatBuilder";
-import {DamageOverTimeBehaviour} from "../../../types/Actions/Behaviours/DamageOverTimeBehaviour";
+﻿import { Character, createCharacter } from "../../../types/Character/Character";
+import { CharacterStats, createStats } from "../../../types/Character/CharacterStats";
+import { BuffBehaviour, BuffStat } from "../../../types/Actions/Behaviours/BuffBehaviour";
+import { StatBuilder } from "../../../types/Character/CharacterStatBuilder";
+import { DamageOverTimeBehaviour } from "../../../types/Actions/Behaviours/DamageOverTimeBehaviour";
+import { CharacterEquipment } from "../../../types/Character/CharacterEquipment";
+import { IBuffBehaviour } from "../../../types/Actions/Behaviours/BehaviourUnion";
 
 describe('Character Turn Effects', () => {
     describe('StatBuilder', () => {
         it('should apply single buff effects to character stats', () => {
             // Create initial character stats
-            const initialStats = new CharacterStats({
+            const initialStats = createStats({
                 attack: 10,
                 defence: 5,
                 hitPoints: 100,
@@ -22,7 +24,7 @@ describe('Character Turn Effects', () => {
 
             // Create character with the buff
             const attackBuff = new BuffBehaviour('Attack Up', BuffStat.Attack, 5, 2, true);
-            const character = new Character({
+            const character = createCharacter({
                 name: 'Test Character',
                 stats: initialStats,
                 chosenActions: [],
@@ -38,7 +40,7 @@ describe('Character Turn Effects', () => {
         });
 
         it('should apply multiple buff effects simultaneously', () => {
-            const initialStats = new CharacterStats({
+            const initialStats = createStats({
                 attack: 10,
                 defence: 5,
                 hitPoints: 100,
@@ -55,7 +57,7 @@ describe('Character Turn Effects', () => {
                 new BuffBehaviour('Defense Up', BuffStat.Defense, 3, 2, true)
             ];
 
-            const character = new Character({
+            const character = createCharacter({
                 name: 'Test Character',
                 stats: initialStats,
                 chosenActions: [],
@@ -71,7 +73,7 @@ describe('Character Turn Effects', () => {
         });
 
         it('should handle debuffs (negative values)', () => {
-            const initialStats = new CharacterStats({
+            const initialStats = createStats({
                 attack: 10,
                 defence: 5,
                 hitPoints: 100,
@@ -88,7 +90,7 @@ describe('Character Turn Effects', () => {
                 new BuffBehaviour('Defense Down', BuffStat.Defense, -2, 2, true)
             ];
 
-            const character = new Character({
+            const character = createCharacter({
                 name: 'Test Character',
                 stats: initialStats,
                 chosenActions: [],
@@ -104,7 +106,7 @@ describe('Character Turn Effects', () => {
         });
 
         it('should handle buff duration decrease', () => {
-            const initialStats = new CharacterStats({
+            const initialStats = createStats({
                 attack: 10,
                 defence: 5,
                 hitPoints: 100,
@@ -117,7 +119,7 @@ describe('Character Turn Effects', () => {
             });
 
             const buff = new BuffBehaviour('Attack Up', BuffStat.Attack, 5, 2, true);
-            const character = new Character({
+            const character = createCharacter({
                 name: 'Test Character',
                 stats: initialStats,
                 chosenActions: [],
@@ -268,5 +270,204 @@ describe('Character Turn Effects', () => {
             expect(thirdTurn.stats.hitPoints).toBe(89); // No new DOT damage
         });
 
+    });
+});
+
+describe('Damage and Buff Behaviours', () => {
+    describe('Damage Calculation', () => {
+        test('should correctly calculate damage with defense', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 0,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            const result = builder.takeDamage(20).build();
+
+            expect(result.stats.hitPoints).toBe(85); // 100 - (20 - 5 defense)
+        });
+
+        test('should correctly calculate damage ignoring defense', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 0,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            const result = builder.takeDamage(20, true).build();
+
+            expect(result.stats.hitPoints).toBe(80); // 100 - 20 (ignoring 5 defense)
+        });
+
+        test('should correctly handle shield in damage calculation', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 10,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            const result = builder.takeDamage(20).build();
+
+            expect(result.stats.shield).toBe(0);
+            expect(result.stats.hitPoints).toBe(95); // Shield absorbs 10, defense reduces by 5, remaining 5 damage to HP
+        });
+    });
+
+    describe('Buff Application', () => {
+        test('should correctly apply attack buff', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 0,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            character.activeBuffs = [{
+                type: "buff",
+                name: "Attack Up",
+                description: "Increases attack power",
+                buffType: BuffStat.Attack,
+                amount: 5,
+                duration: 2,
+                isSelfBuff: true
+            }];
+
+            const result = builder.applyActiveBuffs().build();
+
+            expect(result.stats.attack).toBe(15); // Base 10 + 5 from buff
+        });
+
+        test('should correctly apply multiple buffs', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 0,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            character.activeBuffs = [
+                {
+                    type: "buff",
+                    name: "Attack Up",
+                    description: "Increases attack power",
+                    buffType: BuffStat.Attack,
+                    amount: 5,
+                    duration: 2,
+                    isSelfBuff: true
+                },
+                {
+                    type: "buff",
+                    name: "Defense Up",
+                    description: "Increases defense",
+                    buffType: BuffStat.Defense,
+                    amount: 3,
+                    duration: 2,
+                    isSelfBuff: true
+                }
+            ];
+
+            const result = builder.applyActiveBuffs().build();
+
+            expect(result.stats.attack).toBe(15); // Base 10 + 5 from buff
+            expect(result.stats.defence).toBe(8); // Base 5 + 3 from buff
+        });
+
+        test('should correctly handle buff duration', () => {
+            const initialStats = createStats({
+                hitPoints: 100,
+                maxHitPoints: 100,
+                shield: 0,
+                attack: 10,
+                defence: 5,
+                energy: 100,
+                maxEnergy: 100,
+                energyRegen: 10,
+                hpRegen: 0
+            });
+
+            const character = createCharacter({
+                name: "Test Character",
+                stats: initialStats,
+                equipment: new CharacterEquipment()
+            });
+
+            const builder = new StatBuilder(character);
+            character.activeBuffs = [{
+                type: "buff",
+                name: "Attack Up",
+                description: "Increases attack power",
+                buffType: BuffStat.Attack,
+                amount: 5,
+                duration: 1,
+                isSelfBuff: true
+            }];
+
+            let result = builder.decreaseEffectDurations().applyActiveBuffs().build();
+            expect(result.buffs).toHaveLength(0); // Buff should be removed after duration decrease
+            expect(result.stats.attack).toBe(10); // Back to base attack
+        });
     });
 });

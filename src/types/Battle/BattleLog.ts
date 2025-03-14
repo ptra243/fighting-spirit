@@ -12,6 +12,10 @@ export class BattleLog {
     private entries: BattleLogEntry[] = [];
     private currentTurn: number = 1;
 
+    constructor(initialEntries: BattleLogEntry[]) {
+        this.entries.push(...initialEntries);
+    }
+
     addEntry(entry: Omit<BattleLogEntry, 'turn'>) {
         this.entries.push({
             ...entry,

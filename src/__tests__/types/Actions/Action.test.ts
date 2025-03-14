@@ -354,7 +354,7 @@ describe('Action', () => {
             const damageBehaviourOne = new MockBehaviour({
                 name: 'Damage Behaviour 1',
                 execute: (character: Character, target: Character) => {
-                    const updatedTarget = characterUtils.takeDamage(target, 10, character);
+                    const updatedTarget = characterUtils.wrapCharacter(target).takeDamage( 10, character).build();
                     return [character, updatedTarget];
                 }
             });
@@ -362,7 +362,7 @@ describe('Action', () => {
             const damageBehaviourTwo = new MockBehaviour({
                 name: 'Damage Behaviour 2',
                 execute: (character: Character, target: Character) => {
-                    const updatedTarget = characterUtils.takeDamage(target, 15, character);
+                    const updatedTarget = characterUtils.wrapCharacter(target).takeDamage(15, character).build();
                     return [character, updatedTarget];
                 }
             });

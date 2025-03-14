@@ -1,5 +1,6 @@
 ﻿import {IAttackBehaviour} from "./BehaviourUnion";
-import {Character, characterUtils} from "../../Character/Character";
+import type {Character} from "../../Character/Character";
+import {characterUtils} from "../../Character/Character";
 import {TriggerManager} from "../Triggers/TriggerManager";
 import {DamageContext} from "../Triggers/Trigger";
 
@@ -12,18 +13,22 @@ export enum AttackScalingStat {
 }
 
 export class AttackBehaviour implements IAttackBehaviour {
+    type: "attack";
     name: string;
+    description: string;
     damage: number; // Damage dealt when charged is complete
     scale: AttackScalingStat;
     scaledPercent: number;
     ignoreDefence: boolean
 
     constructor(name: string, damage: number, scale: AttackScalingStat = AttackScalingStat.Attack, scaledPercent: number = 100, ignoreDefence: boolean = false) {
+        this.type = "attack";
         this.name = name;
         this.damage = damage;
         this.scale = scale;
         this.scaledPercent = scaledPercent;
         this.ignoreDefence = ignoreDefence;
+        this.description = `Deal ${damage} damage${scaledPercent > 0 ? ` + ${scaledPercent}% of attack` : ''}${ignoreDefence ? ' (ignores defence)' : ''}`;
     }
 
     execute(character: Character, target: Character, triggerManager?: TriggerManager): [Character, Character] {
@@ -37,7 +42,8 @@ export class AttackBehaviour implements IAttackBehaviour {
         const totalDamage = this.damage + scaledDamage;
 
         // Apply damage to the target
-        let updatedTarget = characterUtils.takeDamage(target, totalDamage, character, this.ignoreDefence);
+        let updatedTarget = characterUtils.wrapCharacter(target)
+            .takeDamage(totalDamage, character, this.ignoreDefence).build();
 
         let updatedCharacter = character;
 
@@ -105,7 +111,5 @@ export class AttackBehaviour implements IAttackBehaviour {
 
         return description;
     }
-
-    type: "attack";
 
 }

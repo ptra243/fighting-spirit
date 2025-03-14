@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import {Character} from "../../types/Character/Character";
+import type {Character} from "../../types/Character/Character";
 
 export const BuffsList: React.FC<{ character: Character }> = ({character}) => {
     return (

@@ -1,87 +1,55 @@
 ﻿import {BuffBehaviour} from "../ActionEquipmentExports";
+import {IBuffBehaviour} from "../Actions/Behaviours/BehaviourUnion";
 
-// BaseEquipment.ts
-export abstract class BaseEquipment {
-    readonly name: string;
-    readonly boostAttack: number;
-    readonly boostDefence: number;
-    readonly boostHitPoints: number;
-    readonly buffs: BuffBehaviour[];
-    readonly type: EquipmentType;
-
-    protected constructor(params: {
-        name: string;
-        boostAttack?: number;
-        boostDefence?: number;
-        boostHitPoints?: number;
-        buffs?: BuffBehaviour[];
-        type: EquipmentType;
-    }) {
-        this.name = params.name;
-        this.boostAttack = params.boostAttack || 0;
-        this.boostDefence = params.boostDefence || 0;
-        this.boostHitPoints = params.boostHitPoints || 0;
-        this.buffs = params.buffs || [];
-        this.type = params.type;
-    }
-}
-
-// EquipmentType.ts
 export enum EquipmentType {
     WEAPON = 'weapon',
     ARMOR = 'armor',
     ACCESSORY = 'accessory'
 }
 
-// Weapon.ts
-export class Weapon extends BaseEquipment {
-
-    constructor(params: {
-        name: string;
-        boostAttack?: number;
-        boostDefence?: number;
-        boostHitPoints?: number;
-        buffs?: BuffBehaviour[];
-    }) {
-        super({
-            ...params,
-            type: EquipmentType.WEAPON
-        });
-    }
+export interface Equipment {
+    readonly name: string;
+    readonly boostAttack: number;
+    readonly boostDefence: number;
+    readonly boostHitPoints: number;
+    readonly buffs: IBuffBehaviour[];
+    readonly type: EquipmentType;
 }
 
-// Armor.ts
-export class Armor extends BaseEquipment {
-
-    constructor(params: {
-        name: string;
-        boostDefence?: number;
-        boostAttack?: number;
-        boostHitPoints?: number;
-        buffs?: BuffBehaviour[];
-    }) {
-        super({
-            ...params,
-            type: EquipmentType.ARMOR
-        });
-    }
+export interface WeaponParams {
+    name: string;
+    boostAttack?: number;
+    boostDefence?: number;
+    boostHitPoints?: number;
+    buffs?: IBuffBehaviour[];
 }
 
-// Accessory.ts
-export class Accessory extends BaseEquipment {
+export interface Weapon extends Equipment {
+    type: EquipmentType.WEAPON;
+}
 
-    constructor(params: {
-        name: string;
-        boostAttack?: number;
-        boostDefence?: number;
-        boostHitPoints?: number;
-        buffs?: BuffBehaviour[];
-    }) {
-        super({
-            ...params,
-            type: EquipmentType.ACCESSORY
-        });
-    }
+export interface ArmorParams {
+    name: string;
+    boostDefence?: number;
+    boostAttack?: number;
+    boostHitPoints?: number;
+    buffs?: IBuffBehaviour[];
+}
+
+export interface Armor extends Equipment {
+    type: EquipmentType.ARMOR;
+}
+
+export interface AccessoryParams {
+    name: string;
+    boostAttack?: number;
+    boostDefence?: number;
+    boostHitPoints?: number;
+    buffs?: IBuffBehaviour[];
+}
+
+export interface Accessory extends Equipment {
+    type: EquipmentType.ACCESSORY;
 }
 
 export interface AccessoryEffect {
@@ -89,4 +57,38 @@ export interface AccessoryEffect {
     description: string;
     onEquip?: () => void;
     onUnequip?: () => void;
+}
+
+// Factory functions to create equipment
+export function createWeapon(params: WeaponParams): Weapon {
+    return {
+        name: params.name,
+        boostAttack: params.boostAttack || 0,
+        boostDefence: params.boostDefence || 0,
+        boostHitPoints: params.boostHitPoints || 0,
+        buffs: params.buffs || [],
+        type: EquipmentType.WEAPON
+    };
+}
+
+export function createArmor(params: ArmorParams): Armor {
+    return {
+        name: params.name,
+        boostAttack: params.boostAttack || 0,
+        boostDefence: params.boostDefence || 0,
+        boostHitPoints: params.boostHitPoints || 0,
+        buffs: params.buffs || [],
+        type: EquipmentType.ARMOR
+    };
+}
+
+export function createAccessory(params: AccessoryParams): Accessory {
+    return {
+        name: params.name,
+        boostAttack: params.boostAttack || 0,
+        boostDefence: params.boostDefence || 0,
+        boostHitPoints: params.boostHitPoints || 0,
+        buffs: params.buffs || [],
+        type: EquipmentType.ACCESSORY
+    };
 }

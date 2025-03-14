@@ -1,17 +1,20 @@
 ﻿// src/types/Classes/KnightClass.ts
 import {CharacterClass} from "./CharacterClass";
-import {Character} from "../Character/Character";
+import type {Character} from "../Character/Character";
 import {ActionTrigger, BuffContext, TriggerCondition, TriggerEffect} from "../Actions/Triggers/Trigger";
-import {CharacterStats} from "../Character/CharacterStats";
+import {CharacterStats, createStats} from "../Character/CharacterStats";
 import {createAttack} from "../Actions/BehaviorFactories";
 
-const KNIGHT_STATS_PER_LEVEL = new CharacterStats({
+const KNIGHT_STATS_PER_LEVEL = createStats({
+    hitPoints: 10,
     maxHitPoints: 10,
-    attack: 5,
-    defence: 5,
-    hpRegen: 1,
-    energyRegen: 0.5,
-    maxEnergy: 0.5
+    shield: 0,
+    attack: 2,
+    defence: 2,
+    energy: 5,
+    maxEnergy: 5,
+    energyRegen: 1,
+    hpRegen: 0
 });
 
 class BuffAmplifierTrigger implements ActionTrigger {
@@ -55,13 +58,12 @@ export class KnightClass extends CharacterClass {
 
         if (this.level == 1) {
             //add buff trigger
-            updatedCharacter.addTrigger(new BuffAmplifierTrigger())
-
+            updatedCharacter.triggerManager.addTrigger(new BuffAmplifierTrigger())
         }
 
         if (this.level == 2) {
             //add buff trigger
-            updatedCharacter.addTrigger(new ExtraAttackTrigger())
+            updatedCharacter.triggerManager.addTrigger(new ExtraAttackTrigger())
         }
 
         return updatedCharacter

@@ -1,4 +1,5 @@
-﻿import {Character, characterUtils} from "../../Character/Character";
+﻿import type {Character} from "../../Character/Character";
+import {characterUtils} from "../../Character/Character";
 import {IDamageOverTimeBehaviour} from "./BehaviourUnion";
 
 export class DamageOverTimeBehaviour implements IDamageOverTimeBehaviour {
@@ -6,17 +7,20 @@ export class DamageOverTimeBehaviour implements IDamageOverTimeBehaviour {
     damagePerTurn: number; // Damage dealt per turn
     duration: number; // Number of turns effect lasts
     type: "damageOverTime";
+    description: string;
 
     constructor(name: string, damagePerTurn: number, duration: number) {
         this.name = name;
+        this.type = "damageOverTime";
         this.damagePerTurn = damagePerTurn;
         this.duration = duration;
+        this.description = this.getDescription();
     }
 
     execute(character: Character, target: Character): [Character, Character] {
         // Apply the debuff (damage over time) to the target
         // const target = this.isSelfBuff ? me : other;
-        const updatedTarget = characterUtils.addDOT(target, this);
+        const updatedTarget = characterUtils.wrapCharacter(target).addDOT(this).build();
         return [character, updatedTarget];
     }
 

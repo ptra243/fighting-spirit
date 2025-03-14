@@ -4,7 +4,6 @@ import {Action} from "../Actions/Action";
 
 // Define the player structure as a TypeScript type
 export interface Player {
-    character: Character;
     gold: number;
     availableActions: Action[];
     preparationPointsLeft: number;
@@ -12,7 +11,6 @@ export interface Player {
 
 // Create factory function to create a new player
 export const createPlayer = (character: Character, gold: number = 0): Player => ({
-    character,
     gold,
     availableActions: [],
     preparationPointsLeft: 3

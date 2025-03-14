@@ -5,8 +5,8 @@ import {Action} from "../../types/Actions/Action";
 import {StatItem} from "../Preparation/StatItemComponent";
 import {useAppSelector, useBattleManager} from "../../store/hooks/hooks";
 import {useDispatch} from "react-redux";
-import {AppDispatch} from "../../store/store";
-import {updatePlayerActions} from "../../store/gameSlice";
+import {AppDispatch} from "../../store/types";
+import {updatePlayerActions} from "../../store/game/gameSlice";
 
 interface BattleEndScreenProps {
     onContinue: (selectedCard?: Action) => void;

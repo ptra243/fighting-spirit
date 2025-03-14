@@ -1,6 +1,7 @@
-﻿import { IActionBehaviour } from '../types/Actions/Behaviours/BehaviourUnion';
-import { AttackBehaviour } from '../types/Actions/Behaviours/AttackBehaviour';
-import { Character, characterUtils } from '../types/Character/Character';
+﻿import { IActionBehaviour } from '../../types/Actions/Behaviours/BehaviourUnion';
+import { AttackBehaviour } from '../../types/Actions/Behaviours/AttackBehaviour';
+import type { Character } from '../../types/Character/Character';
+import { characterUtils } from '../../types/Character/Character';
 
 export function executeBehaviourFn(
   character: Character,
@@ -9,7 +10,7 @@ export function executeBehaviourFn(
 ): [Character, Character] {
   switch (behaviour.type) {
     case "attack":
-      return executeAttackBehaviour(character, target, behaviour as AttackBehaviour);
+      return executeAttackBehaviour(character, target, behaviour as unknown as AttackBehaviour);
 
     // Other `IActionBehaviour` types you're using:
     // case "heal": return executeHealBehaviour(character, target, behaviour as HealBehaviour);

@@ -10,15 +10,32 @@ import {
 import {BuffBehaviour, BuffStat} from "../../../../types/Actions/Behaviours/BuffBehaviour";
 import {AttackBehaviour} from "../../../../types/Actions/Behaviours/AttackBehaviour";
 import {createAttack} from "../../../../types/Actions/BehaviorFactories";
-import {CharacterStats} from "../../../../types/Character/CharacterStats";
+import {CharacterStats, createStats} from "../../../../types/Character/CharacterStats";
+import {CharacterEquipment} from "../../../../types/Character/CharacterEquipment";
+import {TriggerManager} from "../../../../types/Actions/Triggers/TriggerManager";
+import {TriggerType} from "../../../../types/Actions/Triggers/Trigger";
 
 describe('Trigger System Tests', () => {
     let attacker: Character;
     let defender: Character;
+    let triggerManager: TriggerManager;
 
     beforeEach(() => {
+        const baseStats = createStats({
+            hitPoints: 100,
+            maxHitPoints: 100,
+            shield: 0,
+            attack: 10,
+            defence: 5,
+            energy: 100,
+            maxEnergy: 100,
+            energyRegen: 10,
+            hpRegen: 0
+        });
+
         attacker = createTestCharacter();
         defender = createTestCharacter();
+        triggerManager = new TriggerManager();
     });
 
     describe('BeforeAction Trigger', () => {
@@ -100,7 +117,9 @@ describe('Trigger System Tests', () => {
             effect: TriggerEffect = {
                 execute(character: Character, target: Character, context: any): [Character, Character] {
                     const healAmount = Math.floor(context.damage * 0.2);
-                    let updatedCharacter = characterUtils.restoreHealth(character, healAmount, this.name);
+                    let updatedCharacter = characterUtils.wrapCharacter(character)
+                        .restoreHealth(healAmount, this.name)
+                        .build();
                     return [updatedCharacter, target];
                 },
                 behaviour: new BuffBehaviour(
@@ -205,5 +224,101 @@ describe('Trigger System Tests', () => {
             expect(afterBehaviour.activeBuffs).toHaveLength(1);
             expect(afterBehaviour.activeBuffs[0].buffType).toBe(BuffStat.Defense);
         });
+    });
+
+    test('should execute onDamage trigger when damage is dealt', () => {
+        const mockTrigger = jest.fn();
+        triggerManager.addTrigger(TriggerType.ON_DAMAGE, mockTrigger);
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 10);
+        const [newAttacker, newDefender] = attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockTrigger).toHaveBeenCalled();
+        expect(mockTrigger).toHaveBeenCalledWith({
+            attacker: newAttacker,
+            defender: newDefender,
+            damage: expect.any(Number)
+        });
+    });
+
+    test('should execute onLowHealth trigger when health drops below threshold', () => {
+        const mockTrigger = jest.fn();
+        triggerManager.addTrigger(TriggerType.ON_LOW_HEALTH, mockTrigger);
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 90);
+        const [newAttacker, newDefender] = attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockTrigger).toHaveBeenCalled();
+        expect(mockTrigger).toHaveBeenCalledWith({
+            character: newDefender,
+            healthPercentage: expect.any(Number)
+        });
+    });
+
+    test('should execute multiple triggers in sequence', () => {
+        const mockDamageTrigger = jest.fn();
+        const mockLowHealthTrigger = jest.fn();
+        triggerManager.addTrigger(TriggerType.ON_DAMAGE, mockDamageTrigger);
+        triggerManager.addTrigger(TriggerType.ON_LOW_HEALTH, mockLowHealthTrigger);
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 90);
+        const [newAttacker, newDefender] = attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockDamageTrigger).toHaveBeenCalled();
+        expect(mockLowHealthTrigger).toHaveBeenCalled();
+        expect(mockDamageTrigger).toHaveBeenCalledWith({
+            attacker: newAttacker,
+            defender: newDefender,
+            damage: expect.any(Number)
+        });
+        expect(mockLowHealthTrigger).toHaveBeenCalledWith({
+            character: newDefender,
+            healthPercentage: expect.any(Number)
+        });
+    });
+
+    test('should not execute trigger if condition is not met', () => {
+        const mockLowHealthTrigger = jest.fn();
+        triggerManager.addTrigger(TriggerType.ON_LOW_HEALTH, mockLowHealthTrigger);
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 10); // Small damage
+        attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockLowHealthTrigger).not.toHaveBeenCalled();
+    });
+
+    test('should handle multiple triggers of the same type', () => {
+        const mockTrigger1 = jest.fn();
+        const mockTrigger2 = jest.fn();
+        triggerManager.addTrigger(TriggerType.ON_DAMAGE, mockTrigger1);
+        triggerManager.addTrigger(TriggerType.ON_DAMAGE, mockTrigger2);
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 10);
+        const [newAttacker, newDefender] = attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockTrigger1).toHaveBeenCalled();
+        expect(mockTrigger2).toHaveBeenCalled();
+        expect(mockTrigger1).toHaveBeenCalledWith({
+            attacker: newAttacker,
+            defender: newDefender,
+            damage: expect.any(Number)
+        });
+        expect(mockTrigger2).toHaveBeenCalledWith({
+            attacker: newAttacker,
+            defender: newDefender,
+            damage: expect.any(Number)
+        });
+    });
+
+    test('should remove trigger when removeListener is called', () => {
+        const mockTrigger = jest.fn();
+        const removeListener = triggerManager.addTrigger(TriggerType.ON_DAMAGE, mockTrigger);
+
+        removeListener();
+
+        const attackBehaviour = new AttackBehaviour("Test Attack", 10);
+        attackBehaviour.execute(attacker, defender, triggerManager);
+
+        expect(mockTrigger).not.toHaveBeenCalled();
     });
 });
