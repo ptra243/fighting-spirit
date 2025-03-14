@@ -1,16 +1,14 @@
 ﻿// src/store/gameThunks.ts
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { BattleManager } from '../BattleManager';
-import { setBattleManager, progressBattle } from './gameSlice';
-import { EasyEnemies } from '../types/Enemies/EasyEnemies';
-import { MediumEnemies } from '../types/Enemies/MediumEnemies';
-import { HardEnemies } from '../types/Enemies/HardEnemies';
-import { Character } from '../types/Character/Character';
-import { CharacterStats } from '../types/Character/CharacterStats';
-import {RootState} from "./store";
-import type {Draft} from "immer";
-import {Action} from "../types/Actions/Action";
+import {createAsyncThunk} from '@reduxjs/toolkit';
+import {BattleManager} from '../BattleManager';
+import {setBattleManager} from './gameSlice';
+import {EasyEnemies} from '../types/Enemies/EasyEnemies';
+import {MediumEnemies} from '../types/Enemies/MediumEnemies';
+import {HardEnemies} from '../types/Enemies/HardEnemies';
+import {Character} from '../types/Character/Character';
+import {CharacterStats} from '../types/Character/CharacterStats';
 import {reconstructCharacter} from "./characterThunks";
+import {RootState} from "./types";
 
 
 // Helper functions
@@ -39,7 +37,7 @@ const scaleEnemy = (enemy: Character, difficultyFactor: number): Character => {
         defence: Math.round(enemy.stats.defence * scalingMultiplier)
     });
 
-    const baseStats = updatedStats.cloneWith({});
+    const baseStats = new CharacterStats({...updatedStats});
 
     return new Character({
         ...enemy,
@@ -50,9 +48,9 @@ const scaleEnemy = (enemy: Character, difficultyFactor: number): Character => {
 
 export const loadNextBattle = createAsyncThunk(
     'game/loadNextBattle',
-    async (_, { getState, dispatch }) => {
+    async (_, {getState, dispatch}) => {
         const state = getState() as RootState;
-        const { player, currentBattle, totalBattles } = state.game;
+        const {player, currentBattle, totalBattles} = state.game;
 
         if (!player) throw new Error('Player not initialized');
         if (currentBattle >= totalBattles) {
@@ -66,11 +64,11 @@ export const loadNextBattle = createAsyncThunk(
         const newBattleManager = new BattleManager(
             reconstructCharacter(player.character),
             aiOpponent,
-            currentBattle
+            currentBattle,
+            dispatch
         );
 
         dispatch(setBattleManager(newBattleManager));
         return newBattleManager;
     }
-
 );

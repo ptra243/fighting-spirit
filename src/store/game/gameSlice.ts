@@ -8,8 +8,8 @@ import {CharacterStats} from "../types/Character/CharacterStats";
 import {basicAttack, basicBlock} from '../types/Actions/PredefinedActions/KnightActions';
 import {Action} from "../types/Actions/Action";
 import {setAICharacter, setPlayerCharacter} from "./characterSlice";
-import {AppDispatch, RootState} from './store';
 import {reconstructAction} from "./characterThunks";
+import {AppDispatch, RootState} from "./types";
 
 const createInitialPlayer = (): Player => {
     const character = new Character({
@@ -28,7 +28,12 @@ const createInitialPlayer = (): Player => {
         chosenActions: [basicAttack(), basicAttack(), basicBlock()],
         sprite: 'knight.jpg'
     });
-    return new Player(character, 10);
+    return {
+        character,                 // Reference to an existing or new Character object
+        gold: 10,                  // Starting gold
+        availableActions: [],      // Initial list of available actions
+        preparationPointsLeft: 0   // Initial preparation points (customize as needed)
+    }
 };
 
 interface GameState {

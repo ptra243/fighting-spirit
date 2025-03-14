@@ -1,12 +1,12 @@
-﻿
-// Create helper functions to reconstruct your classes
+﻿// Create helper functions to reconstruct your classes
 import type {Draft} from "immer";
 import {Action} from "../types/Actions/Action";
-import {Character} from "../types/Character/Character";
-import {AppDispatch, RootState} from "./store";
+import {Character, characterUtils} from "../types/Character/Character";
+import {AppDispatch, RootState} from "./types";
 import {CharacterClass} from "../types/Classes/CharacterClass";
 import {BaseEquipment} from "../types/Equipment/EquipmentClassHierarchy";
-import {selectPlayerCharacter, setPlayerCharacter} from "./characterSlice";
+import {selectAICharacter, selectPlayerCharacter, setPlayerCharacter} from "./characterSlice";
+import {LogCallbacks} from "../BattleManager";
 
 export const reconstructAction = (draftAction: Draft<Action>): Action => {
     return new Action(draftAction);
@@ -28,9 +28,7 @@ export const levelUpPlayerClass = (
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
     if (character) {
-        const updatedCharacter = new Character({
-            ...character
-        }).levelUpClass(className);
+        const updatedCharacter = characterUtils.wrapCharacter(character).levelUpClass(className);
 
         dispatch(setPlayerCharacter(updatedCharacter));
     }
@@ -41,9 +39,7 @@ export const addClassToPlayer = (
 ) => (dispatch: AppDispatch, getState: () => RootState) => {
     const character = selectPlayerCharacter(getState());
     if (character) {
-        const updatedCharacter = new Character({
-            ...character
-        }).addClass(characterClass);
+        const updatedCharacter = characterUtils.wrapCharacter(character).addClass(characterClass);
 
         dispatch(setPlayerCharacter(updatedCharacter));
     }
@@ -73,6 +69,27 @@ export const unequipItemFromPlayer = (
         const updatedCharacter = new Character({
             ...character,
             equipment: newEquipment
+        });
+
+        dispatch(setPlayerCharacter(updatedCharacter));
+    }
+};
+
+export const setLogCallback = (callback: LogCallbacks) => (dispatch: AppDispatch, getState: () => RootState) => {
+    const character = selectPlayerCharacter(getState());
+    if (character) {
+        const updatedCharacter = new Character({
+            ...character,
+            logCallback: callback
+        });
+
+        dispatch(setPlayerCharacter(updatedCharacter));
+    }
+    const aiCharacter = selectAICharacter(getState());
+    if (aiCharacter) {
+        const updatedCharacter = new Character({
+            ...character,
+            logCallback: callback
         });
 
         dispatch(setPlayerCharacter(updatedCharacter));
