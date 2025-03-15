@@ -1,12 +1,12 @@
 ﻿import { CharacterStats, createStats } from './CharacterStats';
 import { IBuffBehaviour, IDamageOverTimeBehaviour } from "../Actions/Behaviours/BehaviourUnion";
-import { Action } from "../Actions/Action";
-import { CharacterEquipment } from "./CharacterEquipment";
+import { Action, ActionConfig } from "../Actions/Action";
 import { LogCallbacks } from "../../BattleManager";
 import { CharacterClass } from "../Classes/CharacterClass";
-import { BaseTriggerManager, TriggerManager } from "../Actions/Triggers/TriggerManager";
+import { ActionTrigger } from "../Actions/Triggers/Trigger";
 import { createAction } from "../Actions/BehaviorFactories";
 import { CharacterBuilder } from "./CharacterBuilder";
+import { Equipment } from "../Equipment/EquipmentClassHierarchy";
 
 export interface Character {
     name: string;
@@ -15,11 +15,11 @@ export interface Character {
     sprite: string;
     isCharging: boolean;
     chargeTurns: number;
-    chosenActions: Action[];
+    chosenActions: ActionConfig[];
     currentAction: number;
-    equipment: CharacterEquipment;
+    equipment: Equipment[];
     classes: CharacterClass[];
-    triggerManager: TriggerManager;
+    triggers: ActionTrigger[];
     activeBuffs: IBuffBehaviour[];
     activeDOTs: IDamageOverTimeBehaviour[];
     logCallback?: LogCallbacks;
@@ -33,13 +33,6 @@ export function createCharacter(initialCharacter: Partial<Character>): Character
         throw new Error("The 'stats' property is required.");
     }
 
-    const triggerManager = new BaseTriggerManager();
-    if (initialCharacter.triggerManager?.triggers) {
-        initialCharacter.triggerManager.triggers.forEach(trigger =>
-            triggerManager.addTrigger(trigger)
-        );
-    }
-
     return {
         name: initialCharacter.name,
         stats: initialCharacter.stats,
@@ -47,13 +40,13 @@ export function createCharacter(initialCharacter: Partial<Character>): Character
         sprite: initialCharacter.sprite || '',
         isCharging: initialCharacter.isCharging || false,
         chargeTurns: initialCharacter.chargeTurns || 0,
-        equipment: initialCharacter.equipment || new CharacterEquipment(),
-        activeBuffs: initialCharacter.activeBuffs || [],
-        activeDOTs: initialCharacter.activeDOTs || [],
+        equipment: initialCharacter.equipment || [],
         chosenActions: initialCharacter.chosenActions || [],
         currentAction: initialCharacter.currentAction || 0,
         classes: initialCharacter.classes || [],
-        triggerManager,
+        triggers: initialCharacter.triggers || [],
+        activeBuffs: initialCharacter.activeBuffs || [],
+        activeDOTs: initialCharacter.activeDOTs || [],
         logCallback: initialCharacter.logCallback
     };
 }
@@ -66,7 +59,7 @@ export function createBasicCharacter(
     defense: number,
     healthRegen: number = 0,
     energyRegen: number = 0,
-    actions: ReturnType<typeof createAction>[] = []
+    actions: ActionConfig[] = []
 ): Character {
     return createCharacter({
         name,

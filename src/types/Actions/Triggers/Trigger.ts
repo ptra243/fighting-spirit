@@ -1,9 +1,9 @@
 ﻿// First, define trigger types and interfaces
-import {IActionBehaviour} from "../Action";
 import {CharacterStats} from "../../Character/CharacterStats";
 import type {Character} from "../../Character/Character";
 import {BuffBehaviour} from "../Behaviours/BuffBehaviour";
 import {AttackBehaviour} from "../Behaviours/AttackBehaviour";
+import { IActionBehaviour } from "../Behaviours/BehaviourUnion";
 
 export type TriggerType =
     'turnStart'
@@ -45,11 +45,11 @@ export interface BuffContext extends TriggerContext {
 export interface TriggerCondition {
     type: TriggerType;
     chance?: number; // For random triggers like crit
-    requirement?: (character: Character, target?: Character) => boolean;
+    //requirement?: (character: Character, target?: Character) => boolean;
 }
 
 export interface TriggerEffect {
-    execute: (character: Character, target: Character, context: any) => [Character, Character];
+    //execute: (character: Character, target: Character, context: any) => [Character, Character];
     behaviour: IActionBehaviour;
     // modifiers?: Modifier[];
     scaling?: {

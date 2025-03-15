@@ -1,5 +1,9 @@
 ﻿import { AttackBehaviour } from './AttackBehaviour';
 import { HealBehaviour } from './HealBehaviour';
+import { Character } from '../../Character/Character';
+import { AttackScalingStat } from './AttackBehaviour';
+import { BuffStat } from './BuffBehaviour';
+import { TriggerManager } from '../Triggers/TriggerManager';
 
 export type BehaviourType = 'attack' | 'heal' | 'buff' | 'damageOverTime' | 'recharge' | 'shield';
 
@@ -14,11 +18,14 @@ export type ActionBehaviour = AttackBehaviour | HealBehaviour;
 export interface IAttackBehaviour extends IActionBehaviour {
     type: "attack";
     damage: number;
+    scale: AttackScalingStat;
+    scaledPercent: number;
+    ignoreDefence: boolean;
 }
 
 export interface IBuffBehaviour extends IActionBehaviour {
     type: "buff";
-    buffType: string;
+    buffType: BuffStat;
     amount: number;
     duration: number;
     isSelfBuff: boolean;

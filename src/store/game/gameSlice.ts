@@ -3,9 +3,12 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {Character} from '../../types/Character/Character';
 import {Player} from '../../types/Player/Player';
 import {GameStage} from "../../types/GameStageTypes";
-import {Action} from "../../types/Actions/Action";
+import {Action, ActionConfig} from "../../types/Actions/Action";
 import {setPlayerCharacter} from "../character/characterSlice";
 import {createInitialPlayer} from "./utils";
+import { RootState } from '../store';
+import { createAttack } from '../../types/Actions/BehaviorFactories';
+import { basicAttack, basicBlock } from '../../types/Actions/PredefinedActions/KnightActions';
 
 interface GameState {
     player: Player | null;
@@ -13,7 +16,7 @@ interface GameState {
     totalBattles: number;
     isGameOver: boolean;
     gameStage: GameStage;
-    selectedActions: Action[];
+    selectedActions: ActionConfig[];
     currentActionIndex: number;
     battleTurn: number;
     battleStatus: 'idle' | 'executing' | 'waiting' | 'finished';
@@ -43,6 +46,7 @@ const gameSlice = createSlice({
             state.player = action.payload;
             state.currentBattle = 0;
             state.isGameOver = false;
+            state.selectedActions = [basicAttack(),basicAttack(),basicBlock()];
         },
         updatePlayerState: (state, action: PayloadAction<Player>) => {
             state.player = action.payload;
@@ -62,7 +66,7 @@ const gameSlice = createSlice({
             state.winner = action.payload;
             state.currentActionIndex = 0;
         },
-        updatePlayerActions: (state, action: PayloadAction<Action[]>) => {
+        updatePlayerActions: (state, action: PayloadAction<ActionConfig[]>) => {
             if (state.player) {
                 // Create new Action instances for each action
                 state.player.availableActions = action.payload.map(actionData => new Action(actionData));
@@ -84,7 +88,10 @@ const gameSlice = createSlice({
                 state.battleStatus = 'finished';
                 state.isInBattle = false;
             }
-        }
+        },
+        setCurrentBattle: (state, action: PayloadAction<number>) => {
+            state.currentBattle = action.payload;
+        },
     }
 });
 
@@ -96,7 +103,11 @@ export const {
     endBattle,
     checkBattleEnd,
     resetGame,
-    updatePlayerState
+    updatePlayerState,
+    setCurrentBattle
 } = gameSlice.actions;
+
+export const selectCurrentRound = (state: RootState) => state.game.currentBattle;
+export const selectGameStage = (state: RootState) => state.game.gameStage;
 
 export default gameSlice.reducer;

@@ -1,97 +1,51 @@
 ﻿// CharacterEquipment.ts
-import {Accessory, Armor, BaseEquipment, EquipmentType, Weapon} from "../Equipment/EquipmentClassHierarchy";
+import { Equipment, EquipmentType, Weapon, Armor, Accessory } from "../Equipment/EquipmentClassHierarchy";
 
 export class CharacterEquipment {
-    readonly weapon?: Weapon;
-    readonly armor?: Armor;
-    readonly accessory?: Accessory;
+    private equipment: Equipment[] = [];
 
-    constructor(params?: {
-        weapon?: Weapon;
-        armor?: Armor;
-        accessory?: Accessory;
-    }) {
-        this.weapon = params?.weapon;
-        this.armor = params?.armor;
-        this.accessory = params?.accessory;
+    constructor(initialEquipment: Equipment[] = []) {
+        this.equipment = initialEquipment;
     }
 
-    addEquipment(newEquipment: BaseEquipment): CharacterEquipment {
-        let updates: Partial<{
-            weapon?: Weapon;
-            armor?: Armor;
-            accessory?: Accessory;
-        }> = {};
-
-        switch (newEquipment.type) {
-            case EquipmentType.WEAPON:
-                updates.weapon = newEquipment as Weapon;
-                break;
-            case EquipmentType.ARMOR:
-                updates.armor = newEquipment as Armor;
-                break;
-            case EquipmentType.ACCESSORY:
-                updates.accessory = newEquipment as Accessory;
-                break;
-        }
-
-        return new CharacterEquipment({
-            weapon: this.weapon,
-            armor: this.armor,
-            accessory: this.accessory,
-            ...updates
-        });
+    addEquipment(newEquipment: Equipment): CharacterEquipment {
+        // Remove any existing equipment of the same type
+        this.equipment = this.equipment.filter(eq => eq.type !== newEquipment.type);
+        this.equipment.push(newEquipment);
+        return this;
     }
 
     removeEquipment(equipmentName: string): CharacterEquipment {
-        const equipment = this.getEquippedItems().find(eq => eq.name === equipmentName);
-
-        if (!equipment) {
-            return this;
-        }
-        let updates: Partial<{
-            weapon?: Weapon;
-            armor?: Armor;
-            accessory?: Accessory
-        }> = {};
-        switch (equipment.type) {
-            case EquipmentType.WEAPON:
-                updates.weapon = undefined;
-                break;
-            case EquipmentType.ARMOR:
-                updates.armor = undefined;
-                break;
-            case EquipmentType.ACCESSORY:
-                updates.accessory = undefined;
-                break;
-        }
-
-        return new CharacterEquipment({
-            weapon: this.weapon,
-            armor: this.armor,
-            accessory: this.accessory,
-            ...updates
-        });
+        this.equipment = this.equipment.filter(eq => eq.name !== equipmentName);
+        return this;
     }
 
-
-    getEquippedItems(): BaseEquipment[] {
-        return [
-            this.weapon,
-            this.armor,
-            this.accessory
-        ].filter((item) => item !== undefined);
+    getEquippedItems(): Equipment[] {
+        return this.equipment;
     }
 
     calculateTotalStats(): {
         attack: number;
         defence: number;
         hitPoints: number;
+        hpRegen: number;
+        energy: number;
+        energyRegen: number;
     } {
-        return this.getEquippedItems().reduce((total, item) => ({
-            attack: total.attack + (item.boostAttack || 0),
-            defence: total.defence + (item.boostDefence || 0),
-            hitPoints: total.hitPoints + (item.boostHitPoints || 0)
-        }), {attack: 0, defence: 0, hitPoints: 0});
+        return this.equipment.reduce((total, item) => ({
+            attack: total.attack + (item.attackBonus || 0),
+            defence: total.defence + (item.defenseBonus || 0),
+            hitPoints: total.hitPoints + (item.hitPointsBonus || 0),
+            hpRegen: total.hpRegen + (item.hpRegenBonus || 0),
+            energy: total.energy + (item.energyBonus || 0),
+            energyRegen: total.energyRegen + (item.energyRegenBonus || 0)
+        }), {
+            attack: 0,
+            defence: 0,
+            hitPoints: 0,
+            hpRegen: 0,
+            energy: 0,
+            energyRegen: 0
+        });
     }
 }

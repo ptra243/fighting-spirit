@@ -32,21 +32,39 @@ export class StatBuilder {
 
 
     applyEquipmentBuffs(): StatBuilder {
-        const equipmentBonuses = this.character.equipment.calculateTotalStats();
+        // Calculate total stats from equipment array
+        const equipmentBonuses = this.character.equipment.reduce((total, item) => ({
+            attack: total.attack + (item.attackBonus || 0),
+            defence: total.defence + (item.defenseBonus || 0),
+            hitPoints: total.hitPoints + (item.hitPointsBonus || 0),
+            hpRegen: total.hpRegen + (item.hpRegenBonus || 0),
+            energy: total.energy + (item.energyBonus || 0),
+            energyRegen: total.energyRegen + (item.energyRegenBonus || 0)
+        }), {
+            attack: 0,
+            defence: 0,
+            hitPoints: 0,
+            hpRegen: 0,
+            energy: 0,
+            energyRegen: 0
+        });
+
         this.currentStats = createStats({
             ...this.currentStats,
             attack: this.currentStats.attack + equipmentBonuses.attack,
             defence: this.currentStats.defence + equipmentBonuses.defence,
-            maxHitPoints: this.currentStats.maxHitPoints + equipmentBonuses.hitPoints
+            maxHitPoints: this.currentStats.maxHitPoints + equipmentBonuses.hitPoints,
+            hpRegen: this.currentStats.hpRegen + equipmentBonuses.hpRegen,
+            maxEnergy: this.currentStats.maxEnergy + equipmentBonuses.energy,
+            energyRegen: this.currentStats.energyRegen + equipmentBonuses.energyRegen
         });
 
         this.currentBuffs = [
             ...this.currentBuffs,
-            ...this.character.equipment.getEquippedItems().flatMap(equip =>
-                equip.buffs.map(buff => ({...buff, duration:1}))
-            ),
+            ...this.character.equipment.flatMap(equip => 
+                'buffs' in equip ? (equip as { buffs: IBuffBehaviour[] }).buffs.map(buff => ({...buff, duration: 1})) : []
+            )
         ];
-
 
         return this;
     }
@@ -80,7 +98,7 @@ export class StatBuilder {
             defence: applyBuffs(this.currentStats.defence, BuffStat.Defense),
             shield: applyBuffs(this.currentStats.shield, BuffStat.Shield),  // Removed the /2
             energyRegen: applyBuffs(this.currentStats.energyRegen, BuffStat.EnergyRegen),
-            hpRegen: applyBuffs(this.currentStats.hpRegen, BuffStat.hpRegen),
+            hpRegen: applyBuffs(this.currentStats.hpRegen, BuffStat.HPRegen),
         });
         return this;
     }

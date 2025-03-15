@@ -1,110 +1,52 @@
-﻿import type {Character} from "../../Character/Character";
-import {characterUtils} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IBuffBehaviour} from "./BehaviourUnion";
 import {TriggerManager} from "../Triggers/TriggerManager";
 import {BuffContext} from "../Triggers/Trigger";
 
 export enum BuffStat {
     Attack = "attack",
-    Defense = "defense",
-    hpRegen = "hpRegen",
+    Defense = "defence",
+    Shield = "shield",
+    Energy = "energy",
+    HitPoints = "hitPoints",
+    Speed = "speed",
     EnergyRegen = "energyRegen",
-    Shield = "shield"
+    HPRegen = "hpRegen",
+    ChargesPerTurn = "chargesPerTurn",
 }
 
 export class BuffBehaviour implements IBuffBehaviour {
+    readonly type = "buff";
     name: string;
-    type: "buff"; // Identify this as a boost action
-    buffType: BuffStat; // Type of stat to boost
-    amount: number; // Amount by which to boost the stat
-    duration: number; // Number of turns boost lasts
-    isSelfBuff: boolean;
     description: string;
-
-    constructor(name: string, boostType: BuffStat, boostAmount: number, duration: number, isSelfBuff: boolean = true) {
-        this.name = name;
-        this.type = "buff";
-        this.buffType = boostType;
-        this.amount = boostAmount;
-        this.duration = duration;
-        this.isSelfBuff = isSelfBuff;
-        this.description = `Increases ${boostType} by ${boostAmount} for ${duration} turns`;
-    }
-
-    clone(updated: Partial<BuffBehaviour>): BuffBehaviour {
-        return new BuffBehaviour(
-            updated.name ?? this.name,
-            updated.buffType ?? this.buffType,
-            updated.amount ?? this.amount,
-            updated.duration ?? this.duration,
-            updated.isSelfBuff ?? this.isSelfBuff
-        );
-    }
-
-    execute(me: Character, other: Character, triggerManager?: TriggerManager): [Character, Character] {
-        let updatedMe = me;
-        let updatedOther = other;
-
-        let buffToApply = this.clone({});
-
-        // Apply the buff
-        if (this.isSelfBuff) {
-            // Trigger onApplyBuff for self buffs
-            if (triggerManager) {
-                [updatedMe, updatedOther] = triggerManager.executeTriggers<BuffContext>(
-                    'onApplyBuff',
-                    updatedMe,
-                    updatedOther,
-                    {buff: buffToApply}
-                );
-            }
-            updatedMe = characterUtils.wrapCharacter(me).addBuff(buffToApply).build();
-        } else {
-            // Trigger onApplyDebuff for enemy buffs
-            if (other.triggerManager) {
-                [updatedMe, updatedOther] = other.triggerManager.executeTriggers<BuffContext>(
-                    'onApplyDebuff',
-                    updatedMe,
-                    updatedOther,
-                    {buff: buffToApply}
-                );
-            }
-            updatedOther = characterUtils.wrapCharacter(other).addBuff(buffToApply).build();
-        }
-
-        return [updatedMe, updatedOther];
+    buffType: BuffStat;
+    amount: number;
+    duration: number;
+    isSelfBuff: boolean;
+    
+    constructor(config: IBuffBehaviour) {
+        this.name = config.name;
+        this.buffType = config.buffType;
+        this.amount = config.amount;
+        this.duration = config.duration;
+        this.isSelfBuff = config.isSelfBuff;
+        this.description = this.getDescription();
     }
 
     getDescription(): string {
-        let description = '';
+        const target = this.isSelfBuff ? "self" : "target";
+        return `Buff ${target}'s ${this.buffType} by ${this.amount} for ${this.duration} turns`;
+    }
 
-        // Add target keyword
-        description += this.isSelfBuff ? 'Self. ' : 'Enemy. ';
+    execute(character: Character, target: Character): [Character, Character] {
+        const buffTarget = this.isSelfBuff ? character : target;
+        const otherCharacter = this.isSelfBuff ? target : character;
 
-        // Add "Apply" and amount
-        description += `Apply ${this.amount} `;
+        const updatedTarget = characterUtils
+            .wrapCharacter(buffTarget)
+            .addBuff(this)
+            .build();
 
-        // Format buff type name
-        let buffTypeName = '';
-        switch (this.buffType) {
-            case BuffStat.EnergyRegen:
-                buffTypeName = 'Energy Regeneration';
-                break;
-            case BuffStat.hpRegen:
-                buffTypeName = 'HP Regeneration';
-                break;
-            default:
-                // For other buff types, just capitalize the first letter
-                buffTypeName = this.buffType.charAt(0).toUpperCase() + this.buffType.slice(1);
-        }
-
-        description += `${buffTypeName} `;
-
-        // Add duration
-        description += `for ${this.duration} turn`;
-        description += this.duration !== 1 ? 's' : '';
-        description += '.';
-
-        return description;
+        return this.isSelfBuff ? [updatedTarget, otherCharacter] : [otherCharacter, updatedTarget];
     }
 }

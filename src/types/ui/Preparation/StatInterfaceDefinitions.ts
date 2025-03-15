@@ -19,6 +19,12 @@ export interface ValidationState {
 
 export interface Equipment {
     name: string;
-    boostAttack: number;
-    boostDefence: number;
+    description: string;
+    attackBonus?: number;
+    defenseBonus?: number;
+    hitPointsBonus?: number;
+    hpRegenBonus?: number;
+    energyRegenBonus?: number;
+    energyBonus?: number;
+    type: string;
 }

@@ -58,12 +58,12 @@ export class KnightClass extends CharacterClass {
 
         if (this.level == 1) {
             //add buff trigger
-            updatedCharacter.triggerManager.addTrigger(new BuffAmplifierTrigger())
+            updatedCharacter.triggers = [...updatedCharacter.triggers, new BuffAmplifierTrigger()]
         }
 
         if (this.level == 2) {
             //add buff trigger
-            updatedCharacter.triggerManager.addTrigger(new ExtraAttackTrigger())
+            updatedCharacter.triggers = [...updatedCharacter.triggers, new ExtraAttackTrigger()]
         }
 
         return updatedCharacter

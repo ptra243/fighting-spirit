@@ -1,11 +1,11 @@
 ﻿// types/Player/Player.ts
 import {Character} from "../Character/Character";
-import {Action} from "../Actions/Action";
+import {Action, ActionConfig} from "../Actions/Action";
 
 // Define the player structure as a TypeScript type
 export interface Player {
     gold: number;
-    availableActions: Action[];
+    availableActions: ActionConfig[];
     preparationPointsLeft: number;
 }
 

@@ -2,7 +2,6 @@
 import {BuffStat} from "../Actions/Behaviours/BuffBehaviour";
 import {createCharacter} from "../Character/Character";
 import {createStats} from "../Character/CharacterStats";
-import {CharacterEquipment} from "../Character/CharacterEquipment";
 
 // Orc Warrior
 export const orcWarrior = createCharacter({
@@ -21,20 +20,20 @@ export const orcWarrior = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Cleave", [createAttack("Cleave", 7)], 4),
+        createAction("Cleave", createAttack("Cleave", 7).behaviours, 4),
         createAction("Enrage", [
-            createBuff("Attack Boost", BuffStat.Attack, 3, 2),
-            createDebuff("Defense Down", BuffStat.Defense, -2, 2),
+            ...createBuff("Attack Boost", BuffStat.Attack, 3, 2).behaviours,
+            ...createDebuff("Defense Down", BuffStat.Defense, -2, 2).behaviours,
         ], 3),
-        createAction("Brutal Smash", [createAttack("Brutal Smash", 10)], 5),
+        createAction("Brutal Smash", createAttack("Brutal Smash", 10).behaviours, 5),
         createAction("Threaten", [
-            createDebuff("Fear", BuffStat.Attack, -2, 2),
-        ], 2), // Reduces enemy Attack for 2 turns
+            ...createDebuff("Fear", BuffStat.Attack, -2, 2).behaviours,
+        ], 2),
         createAction("Reckless Sprint", [
-            createAttack("Sweeping Charge", 8),
-            createDebuff("Defense Down", BuffStat.Defense, -1, 1), // Lowers own defense after a reckless move
+            ...createAttack("Sweeping Charge", 8).behaviours,
+            ...createDebuff("Defense Down", BuffStat.Defense, -1, 1).behaviours,
         ], 4),
     ]
 });
@@ -55,11 +54,11 @@ export const eliteGuard = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Defensive Stance", [createBuff("Defense Boost", BuffStat.Defense, 5, 2)], 4),
-        createAction("Sword Thrust", [createAttack("Thrust", 10)], 3),
-        createAction("Shield Bash", [createAttack("Bash", 6)], 2)
+        createAction("Defensive Stance", createBuff("Defense Boost", BuffStat.Defense, 5, 2).behaviours, 4),
+        createAction("Sword Thrust", createAttack("Thrust", 10).behaviours, 3),
+        createAction("Shield Bash", createAttack("Bash", 6).behaviours, 2)
     ]
 });
 
@@ -80,13 +79,13 @@ export const skeletonFighter = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Bone Strike", [createAttack("Bone Strike", 5)], 2),
-        createAction("Reassemble", [createHeal("Reassemble", 10)], 4),
+        createAction("Bone Strike", createAttack("Bone Strike", 5).behaviours, 2),
+        createAction("Reassemble", createHeal("Reassemble", 10).behaviours, 4),
         createAction("Death's Embrace", [
-            createAttack("Death's Embrace", 8),
-            createDebuff("Life Drain", BuffStat.hpRegen, -1, 2)
+            ...createAttack("Death's Embrace", 8).behaviours,
+            ...createDebuff("Life Drain", BuffStat.HPRegen, -1, 2).behaviours
         ], 5)
     ]
 });
@@ -108,17 +107,17 @@ export const banditLeader = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Ambush Slash", [createAttack("Ambush Slash", 10)], 6),
-        createAction("Call Reinforcements", [createAttack("Ally Strike", 8)], 4),
-        createAction("Taunt", [createDebuff("Aggro", BuffStat.Attack, 0, 1)], 2),
+        createAction("Ambush Slash", createAttack("Ambush Slash", 10).behaviours, 6),
+        createAction("Call Reinforcements", createAttack("Ally Strike", 8).behaviours, 4),
+        createAction("Taunt", createDebuff("Aggro", BuffStat.Attack, 0, 1).behaviours, 2),
         createAction("Smoke Bomb", [
-            createDebuff("Accuracy Down", BuffStat.Attack, -3, 1),
+            ...createDebuff("Accuracy Down", BuffStat.Attack, -3, 1).behaviours,
         ], 3),
         createAction("Blade Flurry", [
-            createAttack("Flurry Strike", 6),
-            createAttack("Flurry Strike", 6),
+            ...createAttack("Flurry Strike", 6).behaviours,
+            ...createAttack("Flurry Strike", 6).behaviours,
         ], 5)
     ]
 });

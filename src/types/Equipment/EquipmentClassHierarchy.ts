@@ -2,18 +2,21 @@
 import {IBuffBehaviour} from "../Actions/Behaviours/BehaviourUnion";
 
 export enum EquipmentType {
-    WEAPON = 'weapon',
-    ARMOR = 'armor',
-    ACCESSORY = 'accessory'
+    WEAPON = 'WEAPON',
+    ARMOR = 'ARMOR',
+    ACCESSORY = 'ACCESSORY'
 }
 
 export interface Equipment {
-    readonly name: string;
-    readonly boostAttack: number;
-    readonly boostDefence: number;
-    readonly boostHitPoints: number;
-    readonly buffs: IBuffBehaviour[];
-    readonly type: EquipmentType;
+    name: string;
+    description: string;
+    hitPointsBonus?: number;
+    attackBonus?: number;
+    defenseBonus?: number;
+    hpRegenBonus?: number;
+    energyRegenBonus?: number;
+    energyBonus?: number;
+    type: EquipmentType;
 }
 
 export interface WeaponParams {
@@ -25,6 +28,7 @@ export interface WeaponParams {
 }
 
 export interface Weapon extends Equipment {
+    attackBonus: number;
     type: EquipmentType.WEAPON;
 }
 
@@ -37,6 +41,7 @@ export interface ArmorParams {
 }
 
 export interface Armor extends Equipment {
+    defenseBonus: number;
     type: EquipmentType.ARMOR;
 }
 
@@ -49,6 +54,7 @@ export interface AccessoryParams {
 }
 
 export interface Accessory extends Equipment {
+    effect?: string;
     type: EquipmentType.ACCESSORY;
 }
 
@@ -59,36 +65,56 @@ export interface AccessoryEffect {
     onUnequip?: () => void;
 }
 
-// Factory functions to create equipment
-export function createWeapon(params: WeaponParams): Weapon {
+interface EquipmentParams {
+    name: string;
+    description?: string;
+    hitPointsBonus?: number;
+    attackBonus?: number;
+    defenseBonus?: number;
+    hpRegenBonus?: number;
+    energyRegenBonus?: number;
+    energyBonus?: number;
+}
+
+export function createWeapon(params: EquipmentParams): Weapon {
     return {
         name: params.name,
-        boostAttack: params.boostAttack || 0,
-        boostDefence: params.boostDefence || 0,
-        boostHitPoints: params.boostHitPoints || 0,
-        buffs: params.buffs || [],
+        description: params.description || '',
+        hitPointsBonus: params.hitPointsBonus || 0,
+        attackBonus: params.attackBonus || 0,
+        defenseBonus: params.defenseBonus || 0,
+        hpRegenBonus: params.hpRegenBonus || 0,
+        energyRegenBonus: params.energyRegenBonus || 0,
+        energyBonus: params.energyBonus || 0,
         type: EquipmentType.WEAPON
     };
 }
 
-export function createArmor(params: ArmorParams): Armor {
+export function createArmor(params: EquipmentParams): Armor {
     return {
         name: params.name,
-        boostAttack: params.boostAttack || 0,
-        boostDefence: params.boostDefence || 0,
-        boostHitPoints: params.boostHitPoints || 0,
-        buffs: params.buffs || [],
+        description: params.description || '',
+        hitPointsBonus: params.hitPointsBonus || 0,
+        attackBonus: params.attackBonus || 0,
+        defenseBonus: params.defenseBonus || 0,
+        hpRegenBonus: params.hpRegenBonus || 0,
+        energyRegenBonus: params.energyRegenBonus || 0,
+        energyBonus: params.energyBonus || 0,
         type: EquipmentType.ARMOR
     };
 }
 
-export function createAccessory(params: AccessoryParams): Accessory {
+export function createAccessory(params: EquipmentParams & { effect: string }): Accessory {
     return {
         name: params.name,
-        boostAttack: params.boostAttack || 0,
-        boostDefence: params.boostDefence || 0,
-        boostHitPoints: params.boostHitPoints || 0,
-        buffs: params.buffs || [],
-        type: EquipmentType.ACCESSORY
+        description: params.description || '',
+        hitPointsBonus: params.hitPointsBonus || 0,
+        attackBonus: params.attackBonus || 0,
+        defenseBonus: params.defenseBonus || 0,
+        hpRegenBonus: params.hpRegenBonus || 0,
+        energyRegenBonus: params.energyRegenBonus || 0,
+        energyBonus: params.energyBonus || 0,
+        type: EquipmentType.ACCESSORY,
+        effect: params.effect
     };
 }

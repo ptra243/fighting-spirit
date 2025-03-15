@@ -27,35 +27,35 @@ describe('Equipment Management System', () => {
         character = createCharacter({
             name: 'Test Character',
             stats: baseStats,
-            equipment: new CharacterEquipment()
+            equipment: []
         });
 
         weapon = {
             type: EquipmentType.WEAPON,
             name: "Test Weapon",
-            boostAttack: 5,
-            boostDefence: 0,
-            boostHitPoints: 0,
-            buffs: []
-        } as Weapon;
+            description: "A test weapon",
+            attackBonus: 5,
+            defenseBonus: 0,
+            hitPointsBonus: 0
+        };
 
         armor = {
             type: EquipmentType.ARMOR,
             name: "Test Armor",
-            boostAttack: 0,
-            boostDefence: 5,
-            boostHitPoints: 10,
-            buffs: []
-        } as Armor;
+            description: "A test armor",
+            attackBonus: 0,
+            defenseBonus: 5,
+            hitPointsBonus: 10
+        };
 
         accessory = {
             type: EquipmentType.ACCESSORY,
             name: "Test Accessory",
-            boostAttack: 2,
-            boostDefence: 2,
-            boostHitPoints: 5,
-            buffs: []
-        } as Accessory;
+            description: "A test accessory",
+            attackBonus: 2,
+            defenseBonus: 2,
+            hitPointsBonus: 5
+        };
     });
 
     describe('Equipment Management', () => {
@@ -125,9 +125,9 @@ describe('Equipment Management System', () => {
             });
 
             const totalStats = newCharacter.equipment.calculateTotalStats();
-            expect(totalStats.attack).toBe(weapon.boostAttack + armor.boostAttack + accessory.boostAttack);
-            expect(totalStats.defence).toBe(weapon.boostDefence + armor.boostDefence + accessory.boostDefence);
-            expect(totalStats.hitPoints).toBe(weapon.boostHitPoints + armor.boostHitPoints + accessory.boostHitPoints);
+            expect(totalStats.attack).toBe(weapon.attackBonus + armor.attackBonus + accessory.attackBonus);
+            expect(totalStats.defence).toBe(weapon.defenseBonus + armor.defenseBonus + accessory.defenseBonus);
+            expect(totalStats.hitPoints).toBe(weapon.hitPointsBonus + armor.hitPointsBonus + accessory.hitPointsBonus);
         });
 
         test('should apply equipment stats in combat calculations', () => {
@@ -145,7 +145,7 @@ describe('Equipment Management System', () => {
             const builder = new StatBuilder(newCharacter);
             const result = builder.applyEquipmentBuffs().build();
 
-            expect(result.stats.attack).toBe(baseStats.attack + weapon.boostAttack);
+            expect(result.stats.attack).toBe(baseStats.attack + weapon.attackBonus);
         });
     });
 
@@ -176,11 +176,11 @@ describe('Equipment Management System', () => {
             // Calculate actual damage taken by each character
             // Verify that armor reduces damage correctly
 
-            expect(resultWithArmor.stats.defence).toBe(characterWithArmor.baseStats.defence + armor.boostDefence);
+            expect(resultWithArmor.stats.defence).toBe(characterWithArmor.baseStats.defence + armor.defenseBonus);
             expect(resultWithoutArmor.stats.defence).toBe(character.baseStats.defence);
             expect(damageTakenWithoutArmor).toBe(damageAmount - character.stats.defence); // Base defense only
-            expect(damageTakenWithArmor).toBe(damageAmount - (characterWithArmor.baseStats.defence + armor.boostDefence)); // Base + armor defense
-            expect(damageTakenWithoutArmor - damageTakenWithArmor).toBe(armor.boostDefence); // Difference should equal armor bonus
+            expect(damageTakenWithArmor).toBe(damageAmount - (characterWithArmor.baseStats.defence + armor.defenseBonus)); // Base + armor defense
+            expect(damageTakenWithoutArmor - damageTakenWithArmor).toBe(armor.defenseBonus); // Difference should equal armor bonus
         });
 
 
@@ -194,7 +194,7 @@ describe('Equipment Management System', () => {
             const builder = new StatBuilder(newCharacter);
             const result = builder.applyEquipmentBuffs().build();
 
-            expect(result.stats.attack).toBe(baseStats.attack + weapon.boostAttack);
+            expect(result.stats.attack).toBe(baseStats.attack + weapon.attackBonus);
         });
     });
 });

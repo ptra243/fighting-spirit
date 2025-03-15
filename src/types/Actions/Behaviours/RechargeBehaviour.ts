@@ -1,18 +1,16 @@
-﻿import type {Character} from "../../Character/Character";
-import {characterUtils} from "../../Character/Character";
+﻿import {Character, characterUtils} from "../../Character/Character";
 import {IRechargeBehaviour} from "./BehaviourUnion";
 
 export class RechargeBehaviour implements IRechargeBehaviour {
-    type: "recharge";
+    readonly type = "recharge";
     name: string;
     description: string;
     rechargeAmount: number; // Amount of HP to restore
 
-    constructor(name: string, rechargeAmount: number, energyCost: number = 0) {
-        this.type = "recharge";
-        this.name = name;
-        this.rechargeAmount = rechargeAmount;
-        this.description = `Recover ${rechargeAmount} energy`;
+    constructor(config: IRechargeBehaviour) {
+        this.name = config.name;
+        this.rechargeAmount = config.rechargeAmount;
+        this.description = this.getDescription();
     }
 
     execute(character: Character, target: Character): [Character, Character] {
@@ -24,13 +22,6 @@ export class RechargeBehaviour implements IRechargeBehaviour {
     }
 
     getDescription(): string {
-        let description = 'Self. '; // Since recharge is always self-targeted
-
-        // Add "Restore" and energy amount
-        description += `Restore ${this.rechargeAmount} Energy`;
-        description += '.';
-
-        return description;
+        return `Restore ${this.rechargeAmount} energy`;
     }
-
 }

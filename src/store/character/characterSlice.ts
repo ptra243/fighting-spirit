@@ -1,7 +1,9 @@
-﻿import {Character} from "../../types/Character/Character";
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import { CharacterStats } from '../../types/Character/CharacterStats';
+﻿import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Character } from '../../types/Character/Character';
+import { RootState } from '../store';
+import { CharacterStats, createStats } from '../../types/Character/CharacterStats';
 import { IBuffBehaviour, IDamageOverTimeBehaviour } from '../../types/Actions/Behaviours/BehaviourUnion';
+import { Equipment, EquipmentType, Weapon, Armor, Accessory } from '../../types/Equipment/EquipmentClassHierarchy';
 
 interface CharacterState {
     playerCharacter: Character | null;
@@ -23,52 +25,30 @@ const initialState: CharacterState = {
 
 // Stats utility functions
 const statsUtils = {
-    takeDamage: (stats: CharacterStats, damage: number, ignoreDefence = false): CharacterStats => {
-        let remainingDamage = ignoreDefence ? damage : Math.max(damage - stats.defence, 1);
-        let newShield = stats.shield;
-        let newHitPoints = stats.hitPoints;
-
-        if (newShield > 0) {
-            if (newShield >= remainingDamage) {
-                newShield -= remainingDamage;
-                remainingDamage = 0;
-            } else {
-                remainingDamage -= newShield;
-                newShield = 0;
-            }
-        }
-        newHitPoints = Math.max(newHitPoints - remainingDamage, 0);
-
-        return { ...stats, hitPoints: newHitPoints, shield: newShield };
-    },
-
-    restoreHealth: (stats: CharacterStats, amount: number): CharacterStats => ({
-        ...stats,
-        hitPoints: Math.min(stats.hitPoints + amount, stats.maxHitPoints)
-    }),
-
-    recoverEnergy: (stats: CharacterStats, amount: number): CharacterStats => ({
-        ...stats,
-        energy: Math.min(stats.energy + amount, stats.maxEnergy)
-    }),
-
-    spendEnergy: (stats: CharacterStats, amount: number): CharacterStats => ({
-        ...stats,
-        energy: Math.max(stats.energy - amount, 0)
-    }),
-
     incrementActionCounter: (stats: CharacterStats): CharacterStats => ({
         ...stats,
         actionCounter: Math.min(100, stats.actionCounter + stats.speed)
     }),
-
     resetActionCounter: (stats: CharacterStats): CharacterStats => ({
         ...stats,
         actionCounter: 0
     })
 };
 
-const characterSlice = createSlice({
+// Equipment type guards
+function isWeapon(equipment: Equipment): equipment is Weapon {
+    return equipment.type === EquipmentType.WEAPON;
+}
+
+function isArmor(equipment: Equipment): equipment is Armor {
+    return equipment.type === EquipmentType.ARMOR;
+}
+
+function isAccessory(equipment: Equipment): equipment is Accessory {
+    return equipment.type === EquipmentType.ACCESSORY;
+}
+
+export const characterSlice = createSlice({
     name: 'character',
     initialState,
     reducers: {
@@ -78,16 +58,14 @@ const characterSlice = createSlice({
         setAICharacter: (state, action: PayloadAction<Character>) => {
             state.aiCharacter = action.payload;
         },
-        setAICharacters: (state, action: PayloadAction<Character[]>) => {
-            state.aiCharacters = action.payload;
+        updatePlayerStats: (state, action: PayloadAction<CharacterStats>) => {
+            if (state.playerCharacter) {
+                state.playerCharacter.stats = action.payload;
+            }
         },
-        recordBattleState: (state) => {
-            if (state.playerCharacter && state.aiCharacter) {
-                state.battleHistory.push({
-                    playerHP: state.playerCharacter.stats.hitPoints,
-                    aiHP: state.aiCharacter.stats.hitPoints,
-                    timestamp: Date.now()
-                });
+        updateAIStats: (state, action: PayloadAction<CharacterStats>) => {
+            if (state.aiCharacter) {
+                state.aiCharacter.stats = action.payload;
             }
         },
         incrementActionCounter: (state, action: PayloadAction<{ target: 'player' | 'ai' }>) => {
@@ -112,51 +90,53 @@ const characterSlice = createSlice({
                 }
             }
         },
-        takeDamage: (state, action: PayloadAction<{
-            target: 'player' | 'ai',
-            damage: number,
-            ignoreDefence?: boolean
-        }>) => {
-            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
-            if (character) {
-                const updatedStats = statsUtils.takeDamage(character.stats, action.payload.damage, action.payload.ignoreDefence);
-                if (action.payload.target === 'player') {
-                    state.playerCharacter = { ...character, stats: updatedStats };
-                } else {
-                    state.aiCharacter = { ...character, stats: updatedStats };
-                }
+        addPlayerBuff: (state, action: PayloadAction<IBuffBehaviour>) => {
+            if (state.playerCharacter) {
+                state.playerCharacter.activeBuffs.push(action.payload);
             }
         },
-        restoreHealth: (state, action: PayloadAction<{
-            target: 'player' | 'ai',
-            amount: number
-        }>) => {
-            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
-            if (character) {
-                const updatedStats = statsUtils.restoreHealth(character.stats, action.payload.amount);
-                if (action.payload.target === 'player') {
-                    state.playerCharacter = { ...character, stats: updatedStats };
-                } else {
-                    state.aiCharacter = { ...character, stats: updatedStats };
-                }
+        addAIBuff: (state, action: PayloadAction<IBuffBehaviour>) => {
+            if (state.aiCharacter) {
+                state.aiCharacter.activeBuffs.push(action.payload);
             }
         },
-        modifyEnergy: (state, action: PayloadAction<{
-            target: 'player' | 'ai',
-            amount: number,
-            type: 'spend' | 'recover'
-        }>) => {
-            const character = action.payload.target === 'player' ? state.playerCharacter : state.aiCharacter;
-            if (character) {
-                const updatedStats = action.payload.type === 'spend' 
-                    ? statsUtils.spendEnergy(character.stats, action.payload.amount)
-                    : statsUtils.recoverEnergy(character.stats, action.payload.amount);
-                if (action.payload.target === 'player') {
-                    state.playerCharacter = { ...character, stats: updatedStats };
-                } else {
-                    state.aiCharacter = { ...character, stats: updatedStats };
-                }
+        addPlayerDOT: (state, action: PayloadAction<IDamageOverTimeBehaviour>) => {
+            if (state.playerCharacter) {
+                state.playerCharacter.activeDOTs.push(action.payload);
             }
+        },
+        addAIDOT: (state, action: PayloadAction<IDamageOverTimeBehaviour>) => {
+            if (state.aiCharacter) {
+                state.aiCharacter.activeDOTs.push(action.payload);
+            }
+        },
+        addPlayerEquipment: (state, action: PayloadAction<Weapon | Armor | Accessory>) => {
+            if (state.playerCharacter) {
+                // Remove any existing equipment of the same type
+                state.playerCharacter.equipment = state.playerCharacter.equipment.filter(eq => {
+                    if (isWeapon(action.payload) && isWeapon(eq)) return false;
+                    if (isArmor(action.payload) && isArmor(eq)) return false;
+                    if (isAccessory(action.payload) && isAccessory(eq)) return false;
+                    return true;
+                });
+                state.playerCharacter.equipment.push(action.payload);
+            }
+        },
+        removePlayerEquipment: (state, action: PayloadAction<{ type: EquipmentType }>) => {
+            if (state.playerCharacter) {
+                state.playerCharacter.equipment = state.playerCharacter.equipment.filter(eq => {
+                    if (action.payload.type === EquipmentType.WEAPON && isWeapon(eq)) return false;
+                    if (action.payload.type === EquipmentType.ARMOR && isArmor(eq)) return false;
+                    if (action.payload.type === EquipmentType.ACCESSORY && isAccessory(eq)) return false;
+                    return true;
+                });
+            }
+        },
+        addBattleHistoryEntry: (state, action: PayloadAction<{ playerHP: number; aiHP: number }>) => {
+            state.battleHistory.push({
+                ...action.payload,
+                timestamp: Date.now()
+            });
         }
     }
 });
@@ -164,13 +144,21 @@ const characterSlice = createSlice({
 export const {
     setPlayerCharacter,
     setAICharacter,
-    setAICharacters,
-    recordBattleState,
+    updatePlayerStats,
+    updateAIStats,
     incrementActionCounter,
     resetActionCounter,
-    takeDamage,
-    restoreHealth,
-    modifyEnergy
+    addPlayerBuff,
+    addAIBuff,
+    addPlayerDOT,
+    addAIDOT,
+    addPlayerEquipment,
+    removePlayerEquipment,
+    addBattleHistoryEntry
 } = characterSlice.actions;
+
+export const selectPlayerCharacter = (state: RootState) => state.character.playerCharacter;
+export const selectAICharacter = (state: RootState) => state.character.aiCharacter;
+export const selectBattleHistory = (state: RootState) => state.character.battleHistory;
 
 export default characterSlice.reducer;

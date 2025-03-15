@@ -1,16 +1,24 @@
 ﻿import type {Character} from "../Character/Character";
 import {characterUtils, createCharacter} from "../Character/Character";
 import {Modifier} from './Modifiers/IModifier';
-import {BaseTriggerManager, TriggerManager} from "./Triggers/TriggerManager";
+import {ActionTrigger} from "./Triggers/Trigger";
 import {AttackBehaviour} from "./Behaviours/AttackBehaviour";
+import {BuffBehaviour} from "./Behaviours/BuffBehaviour";
+import {DamageOverTimeBehaviour} from "./Behaviours/DamageOverTimeBehaviour";
+import {HealBehaviour} from "./Behaviours/HealBehaviour";
+import {RechargeBehaviour} from "./Behaviours/RechargeBehaviour";
+import {ShieldBehaviour} from "./Behaviours/ShieldBehaviour";
+import {IActionBehaviour, IAttackBehaviour, IBuffBehaviour, IDamageOverTimeBehaviour, IHealBehaviour, IRechargeBehaviour, IShieldAbility} from "./Behaviours/BehaviourUnion";
 
 export interface ActionRequirement {
     className: string;
     level: number;
 }
 
+export type ActionBehaviour = AttackBehaviour | BuffBehaviour | DamageOverTimeBehaviour | HealBehaviour | RechargeBehaviour | ShieldBehaviour;
 
-interface ActionConfig {
+export interface ActionConfig {
+    id: number;
     name: string;
     behaviours: IActionBehaviour[];
     energyCost: number;
@@ -18,58 +26,74 @@ interface ActionConfig {
     requirement?: ActionRequirement;
     chargeTurns: number;
     isPrecharge: boolean;
-    triggerManager: TriggerManager;
+    triggers: ActionTrigger[];
+}
 
+// Static counter for generating unique IDs
+let actionConfigIdCounter = 1;
+
+// Function to get next unique ID
+export function getNextActionId(): number {
+    return actionConfigIdCounter++;
 }
 
 export class Action implements ActionConfig {
-    private static idCounter = 1; // Static variable for storing the current ID
+    private static idCounter = 1;
     public id: number;
     public name: string;
     public energyCost: number;
-    public behaviours: IActionBehaviour[]
+    public behaviours: ActionBehaviour[];
     public modifiers: Modifier[];
-    description: any;
+    description: string;
     requirement?: ActionRequirement;
     public chargeTurns: number;
     public isPrecharge: boolean;
-    public triggerManager: TriggerManager;
-
+    public triggers: ActionTrigger[];
 
     constructor(config: Partial<ActionConfig>) {
-        this.id = Action.idCounter++;
-        this.name = config.name || 'Unkown';
+        this.id = config.id || Action.idCounter++;
+        this.name = config.name || 'Unknown';
         this.energyCost = config.energyCost || 0;
-        this.behaviours = config.behaviours || [];
+        this.behaviours = this.createBehaviours(config.behaviours || []);
         this.description = config.description || '';
         this.requirement = config.requirement;
         this.chargeTurns = config.chargeTurns || 0;
         this.isPrecharge = config.isPrecharge ?? true;
-        this.triggerManager = new BaseTriggerManager();
-
-        if (config.triggerManager?.triggers) {
-            config.triggerManager.triggers.forEach(trigger => this.triggerManager.addTrigger(trigger));
-        }
+        this.triggers = config.triggers || [];
+        this.modifiers = [];
     }
 
-    cloneWith(initialAction: Partial<Action>): Action {
-        return
-
-    }
-
-    //TODO
-    applyModifier(modifier: Modifier) {
-        this.modifiers.push(modifier);
-        // if(modifier.type == 'energy')
-        this.behaviours.forEach((b) => {
-            if (modifier.scaleStat) {
-
-
+    private createBehaviours(behaviourConfigs: IActionBehaviour[]): ActionBehaviour[] {
+        return behaviourConfigs.map(config => {
+            switch (config.type) {
+                case "attack": {
+                    const attackConfig = config as IAttackBehaviour;
+                    return new AttackBehaviour(attackConfig);
+                }
+                case "buff": {
+                    const buffConfig = config as IBuffBehaviour;
+                    return new BuffBehaviour(buffConfig);
+                }
+                case "damageOverTime": {
+                    const dotConfig = config as IDamageOverTimeBehaviour;
+                    return new DamageOverTimeBehaviour(dotConfig);
+                }
+                case "heal": {
+                    const healConfig = config as IHealBehaviour;
+                    return new HealBehaviour(healConfig);
+                }
+                case "recharge": {
+                    const rechargeConfig = config as IRechargeBehaviour;
+                    return new RechargeBehaviour(rechargeConfig);
+                }
+                case "shield": {
+                    const shieldConfig = config as IShieldAbility;
+                    return new ShieldBehaviour(shieldConfig);
+                }
+                default:
+                    throw new Error(`Unknown behaviour type: ${config.type}`);
             }
-
         });
-
-
     }
 
     execute(character: Character, target?: Character): [Character, Character] {
@@ -106,7 +130,6 @@ export class Action implements ActionConfig {
                 });
                 return [updatedCharacter, target];
             }
-
         } else {
             // Not charging - check energy cost before starting
             if (character.stats.energy < this.energyCost) {
@@ -166,28 +189,35 @@ export class Action implements ActionConfig {
     private DoExecuteAction(character: Character, target: Character): [Character, Character] {
         let updatedCharacter = character;
         let updatedTarget = target;
-        let UnifiedTriggerManager = new BaseTriggerManager([...character.triggerManager.triggers, ...this.triggerManager.triggers]);
-        UnifiedTriggerManager.resetTriggers();
-        // Execute pre-action triggers from both sources
-        [updatedCharacter, updatedTarget] = UnifiedTriggerManager.executeTriggers(
+        const allTriggers = [...character.triggers, ...this.triggers];
+
+        // Reset all triggers
+        allTriggers.forEach(trigger => {
+            trigger.hasBeenTriggered = false;
+        });
+
+        // Execute pre-action triggers
+        [updatedCharacter, updatedTarget] = this.executeTriggers(
             "beforeAction",
+            allTriggers,
             updatedCharacter,
             updatedTarget
         );
 
+        // Execute behaviors
         [updatedCharacter, updatedTarget] = this.behaviours.reduce(
             ([currentChar, currentTarget], behaviour) => {
                 // Execute the behavior
                 const [charAfterBehavior, targetAfterBehavior] = behaviour.execute(
                     currentChar,
-                    currentTarget,
-                    UnifiedTriggerManager
+                    currentTarget
                 );
 
-                // If it's an attack behavior, execute both trigger managers
+                // If it's an attack behavior, execute attack triggers
                 if (behaviour instanceof AttackBehaviour) {
-                    return UnifiedTriggerManager.executeTriggers(
+                    return this.executeTriggers(
                         'onAttack',
+                        allTriggers,
                         charAfterBehavior,
                         targetAfterBehavior
                     );
@@ -198,23 +228,50 @@ export class Action implements ActionConfig {
             [updatedCharacter, updatedTarget]
         );
 
-
-        // Execute post-action triggers from both sources
-        [updatedCharacter, updatedTarget] = UnifiedTriggerManager.executeTriggers(
+        // Execute post-action triggers
+        [updatedCharacter, updatedTarget] = this.executeTriggers(
             'afterAction',
+            allTriggers,
             updatedCharacter,
             updatedTarget
         );
+
         return [updatedCharacter, updatedTarget];
-
     }
-}
 
-export interface IActionBehaviour {
-    name: string;
+    private executeTriggers(
+        type: string,
+        triggers: ActionTrigger[],
+        character: Character,
+        target: Character
+    ): [Character, Character] {
+        let updatedCharacter = character;
+        let updatedTarget = target;
 
-    getDescription(): string;
+        for (const trigger of triggers) {
+            if (trigger.condition.type !== type || trigger.hasBeenTriggered) continue;
 
-    //triggermanager is not required for backwards compatibility
-    execute(character: Character, target: Character, triggerManager?: TriggerManager): [Character, Character] // Logic to apply the action, return log entry
+            if (trigger.condition.chance && Math.random() > trigger.condition.chance) continue;
+
+            // if (trigger.condition.requirement &&
+            //     !trigger.condition.requirement(updatedCharacter, updatedTarget)) continue;
+
+            // if (trigger.effect.execute) {
+            //     [updatedCharacter, updatedTarget] = trigger.effect.execute(
+            //         updatedCharacter,
+            //         updatedTarget,
+            //         null
+            //     );
+            // }
+            // if (trigger.effect.behaviour) {
+            //     [updatedCharacter, updatedTarget] = trigger.effect.behaviour.execute(
+            //         updatedCharacter,
+            //         updatedTarget
+            //     );
+            // }
+            trigger.hasBeenTriggered = true;
+        }
+
+        return [updatedCharacter, updatedTarget];
+    }
 }

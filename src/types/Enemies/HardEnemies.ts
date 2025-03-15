@@ -27,13 +27,13 @@ export const Lich = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Dark Heal", [createHeal("Dark Heal", 8)], 3),
-        createAction("Shadow Bolt", [createAttack("Shadow Bolt", 7)], 2),
+        createAction("Dark Heal", createHeal("Dark Heal", 8).behaviours, 3),
+        createAction("Shadow Bolt", createAttack("Shadow Bolt", 7).behaviours, 2),
         createAction(
             "Weaken",
-            [createDebuff("Attack Down", BuffStat.Attack, -2, 2)],
+            createDebuff("Attack Down", BuffStat.Attack, -2, 2).behaviours,
             3
         )
     ]
@@ -55,21 +55,21 @@ export const cursedKnight = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Dark Cleave", [createAttack("Dark Cleave", 10)], 5),
-        createAction("Unholy Barrier", [createBuff("Defense Boost", BuffStat.Defense, 5, 3)], 4),
+        createAction("Dark Cleave", createAttack("Dark Cleave", 10).behaviours, 5),
+        createAction("Unholy Barrier", createBuff("Defense Boost", BuffStat.Defense, 5, 3).behaviours, 4),
         createAction("Life Drain", [
-            createAttack("Life Drain", 8),
-            createHeal("Drain Heal", 6),
+            ...createAttack("Life Drain", 8).behaviours,
+            ...createHeal("Drain Heal", 6).behaviours,
         ], 6),
         createAction("Cursed Slash", [
-            createAttack("Cursed Slash", 9),
-            createDebuff("Attack Down", BuffStat.Attack, -2, 2),
+            ...createAttack("Cursed Slash", 9).behaviours,
+            ...createDebuff("Attack Down", BuffStat.Attack, -2, 2).behaviours,
         ], 4),
         createAction("Unholy Fire", [
-            createDamageOverTime("Burn", 3, 3),
-            createAttack("Fire Strike", 6)
+            ...createDamageOverTime("Burn", 3, 3).behaviours,
+            ...createAttack("Fire Strike", 6).behaviours
         ], 5)
     ]
 });
@@ -90,16 +90,16 @@ export const dragonWhelp = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
-        createAction("Fire Breath", [createAttack("Fire Breath", 12)], 4),
-        createAction("Wing Slash", [createAttack("Wing Slash", 8)], 2),
+        createAction("Fire Breath", createAttack("Fire Breath", 12).behaviours, 4),
+        createAction("Wing Slash", createAttack("Wing Slash", 8).behaviours, 2),
         createAction("Dragon Roar", [
-            createDebuff("Fear", BuffStat.Attack, -4, 2),
+            ...createDebuff("Fear", BuffStat.Attack, -4, 2).behaviours,
         ], 3),
         createAction("Lava Burst", [
-            createDamageOverTime("Lava Burn", 4, 3),
-            createAttack("Burst", 6)
+            ...createDamageOverTime("Lava Burn", 4, 3).behaviours,
+            ...createAttack("Burst", 6).behaviours
         ], 5)
     ]
 });
@@ -120,22 +120,22 @@ export const demonLord = createCharacter({
         chargesPerTurn: 1,
         actionCounter: 0
     }),
-    equipment: new CharacterEquipment(),
+    equipment: [],
     chosenActions: [
         createAction("Hellfire", [
-            createAttack("Hellfire", 15),
-            createDamageOverTime("Hellfire Burn", 3, 3)
+            ...createAttack("Hellfire", 15).behaviours,
+            ...createDamageOverTime("Hellfire Burn", 3, 3).behaviours
         ], 6),
         createAction("Dark Aura", [
-            createDebuff("Defense Down", BuffStat.Defense, -3, 3),
+            ...createDebuff("Defense Down", BuffStat.Defense, -3, 3).behaviours,
         ], 3),
         createAction("Chains of Despair", [
-            createDebuff("Energy Drain", BuffStat.EnergyRegen, -2, 3),
-            createAttack("Chain Strike", 8)
+            ...createDebuff("Energy Drain", BuffStat.Energy, -2, 3).behaviours,
+            ...createAttack("Chain Strike", 8).behaviours
         ], 5),
         createAction("Demonic Fury", [
-            createBuff("Demonic Power", BuffStat.Attack, 5, 2),
-            createAttack("Fury Strike", 12)
+            ...createBuff("Demonic Power", BuffStat.Attack, 5, 2).behaviours,
+            ...createAttack("Fury Strike", 12).behaviours
         ], 7)
     ]
 });

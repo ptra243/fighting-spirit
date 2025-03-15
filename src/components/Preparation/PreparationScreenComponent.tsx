@@ -3,25 +3,24 @@ import '../../styles/PreparationScreenStyles.css';
 import {EquipmentSection} from './EquipmentSection';
 import {
     ExpandableState,
-    PreparationScreenProps,
     ValidationState
 } from '../../types/ui/Preparation/StatInterfaceDefinitions';
 import {StatItem} from "./StatItemComponent";
 import {EnemyPreview} from "./EnemyPreviewComponent";
 import DragAndDropActions from "./DragAndDropActionManager";
-import {useBattleManager} from "../../store/hooks/hooks";
-import {useSelector} from "react-redux";
-import {RootState} from "../../store/types";
+import {useAppDispatch, useAppSelector} from "../../store/hooks/hooks";
 import {characterUtils} from "../../types/Character/Character";
-import {selectAICharacter, selectPlayerCharacter} from "../../store/character/characterSelectors";
+import {selectAICharacter, selectPlayerCharacter} from "../../store/character/characterSlice";
+import {startBattle} from "../../store/battle/battleSlice";
+import {selectCurrentRound} from '../../store/game/gameSlice';
 
-export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBattle}) => {
-    const {battleManager} = useBattleManager();
+export const PreparationScreenComponent: React.FC = () => {
+    const dispatch = useAppDispatch();
+    const playerCharacter = useAppSelector(selectPlayerCharacter);
+    const aiCharacter = useAppSelector(selectAICharacter);
+    const currentRound = useAppSelector(selectCurrentRound);
 
-    let playerCharacter = useSelector(selectPlayerCharacter);
-    const aiCharacter = useSelector(selectAICharacter);
-
-    playerCharacter = characterUtils.wrapCharacter(playerCharacter).applyOutOfBattleStats().build();
+    const updatedPlayerCharacter = playerCharacter ? characterUtils.wrapCharacter(playerCharacter).applyOutOfBattleStats().build() : null;
     const [expandedSections, setExpandedSections] = useState<ExpandableState>({
         stats: false,
         equipment: false
@@ -31,26 +30,39 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
         errors: null,
         hasAttempted: false
     });
-    let requiredCards: number = battleManager.getRound();
-    requiredCards += 3;
+    
+    const requiredCards = currentRound + 3;
 
+    const validateBattle = () => {
+        if (!playerCharacter || !aiCharacter) {
+            return false;
+        }
+        return playerCharacter.chosenActions.length >= requiredCards;
+    };
 
     const handleStartBattle = () => {
-        setValidationState(prev => ({...prev, hasAttempted: true}));
-        const errors = battleManager.canStartBattle();
+        setValidationState({
+            hasAttempted: true,
+            errors: []
+        });
 
-        if (errors.length === 0) {
-            setValidationState(prev => ({...prev, errors: null}));
-            // console.log({
-            //     description: 'Classes before we start the battle',
-            //     playerStateClasses: playerState.classes,
-            //     battleManagerClasses: battleManager.player.classes
-            // });
-            // setPlayer(playerState);
-            onStartBattle();
-        } else {
-            setValidationState(prev => ({...prev, errors}));
+        if (!playerCharacter || !aiCharacter) {
+            setValidationState(prev => ({
+                ...prev,
+                errors: [...(prev.errors || []), "Characters not loaded properly"]
+            }));
+            return;
         }
+
+        if (playerCharacter.chosenActions.length < requiredCards) {
+            setValidationState(prev => ({
+                ...prev,
+                errors: [...(prev.errors || []), `You need to select at least ${requiredCards} actions`]
+            }));
+            return;
+        }
+
+        dispatch(startBattle());
     };
 
     const toggleSection = (section: keyof ExpandableState) => {
@@ -60,26 +72,25 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
         }));
     };
 
+    if (!playerCharacter || !aiCharacter) {
+        return <div>Loading characters...</div>;
+    }
+
     return (
         <div className="preparation-layout">
             <div className="main-content">
                 <div className="player-section">
-                    <h1>{playerCharacter.name}'s Battle Preparation</h1>
-                    <h1>Battle {battleManager.getRound()}</h1>
-                    {/*<div>*/}
-                    {/*    /!* First row animation *!/*/}
-                    {/*    <SoldierSprite animation={SoldierAnimation.IDLE} showDebugControls={true} scale={2} frameHeight={100} frameWidth={100}/>*/}
-
-                    {/*</div>*/}
+                    <h1>{updatedPlayerCharacter?.name}'s Battle Preparation</h1>
+                    <h1>Battle {currentRound}</h1>
                     <div className="stats-section">
                         <h3 className="section-header">Character Statistics</h3>
                         <div className="stats-grid">
-                            <StatItem label="HP" value={playerCharacter.stats.maxHitPoints}/>
-                            <StatItem label="Attack" value={playerCharacter.stats.attack}/>
-                            <StatItem label="Defence" value={playerCharacter.stats.defence}/>
-                            <StatItem label="Starting Energy" value={playerCharacter.stats.energy}/>
-                            <StatItem label="Energy Regeneration" value={playerCharacter.stats.energyRegen}/>
-                            <StatItem label="HP Regeneration" value={playerCharacter.stats.hpRegen}/>
+                            <StatItem label="HP" value={updatedPlayerCharacter.stats.maxHitPoints}/>
+                            <StatItem label="Attack" value={updatedPlayerCharacter.stats.attack}/>
+                            <StatItem label="Defence" value={updatedPlayerCharacter.stats.defence}/>
+                            <StatItem label="Starting Energy" value={updatedPlayerCharacter.stats.energy}/>
+                            <StatItem label="Energy Regeneration" value={updatedPlayerCharacter.stats.energyRegen}/>
+                            <StatItem label="HP Regeneration" value={updatedPlayerCharacter.stats.hpRegen}/>
                         </div>
 
                         <div className="expandable-section">
@@ -90,7 +101,7 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({onStartBatt
                                 {expandedSections.equipment ? '▼' : '▶'} Equipment
                             </button>
                             {expandedSections.equipment &&
-                                <EquipmentSection equipment={playerCharacter.equipment.getEquippedItems()}/>}
+                                <EquipmentSection equipment={updatedPlayerCharacter.equipment}/>}
                         </div>
                     </div>
 

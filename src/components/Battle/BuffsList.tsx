@@ -13,7 +13,7 @@ export const BuffsList: React.FC<{ character: Character }> = ({character}) => {
                 ))}
                 {character.activeDOTs.map((dot, index) => (
                     <div key={index} className="dot-item">
-                        {dot.getDescription()} ({dot.duration} turns)
+                        {dot.description} ({dot.duration} turns)
                     </div>
                 ))}
             </div>

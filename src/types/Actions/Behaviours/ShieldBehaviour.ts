@@ -1,43 +1,31 @@
 ﻿// ShieldBehavior.ts
-import type { Character } from "../../Character/Character";
-import { CharacterStats, createStats } from "../../Character/CharacterStats";
-import { TriggerManager } from "../Triggers/TriggerManager";
-import { IActionBehaviour } from "../Action";
+import {Character, characterUtils} from "../../Character/Character";
+import {IShieldAbility} from "./BehaviourUnion";
 
-export class ShieldBehaviour implements IActionBehaviour {
-    type: "shield";
+export class ShieldBehaviour implements IShieldAbility {
+    readonly type = "shield";
     name: string;
     description: string;
     shieldAmount: number;
-
-    constructor(name: string, shieldAmount: number) {
-        this.type = "shield";
-        this.name = name;
-        this.description = `Gain ${shieldAmount} shield`;
-        this.shieldAmount = shieldAmount;
-    }
-
-    execute(source: Character, target: Character, triggerManager: TriggerManager): [Character, Character] {
-        const newStats = createStats({
-            ...source.stats,
-            shield: source.stats.shield + this.shieldAmount,
-        });
-
-        const newSource = {
-            ...source,
-            stats: newStats
-        };
-
-        return [newSource, target];
+    
+    constructor(config: IShieldAbility) {
+        this.name = config.name;
+        this.shieldAmount = config.shieldAmount;
+        this.description = this.getDescription();
     }
 
     getDescription(): string {
-        let description = 'Self. '; // Since shield is always self-targeted
+        return `Gain ${this.shieldAmount} shield`;
+    }
 
-        // Add "Gain" and shield amount
-        description += `Gain ${this.shieldAmount} Shield`;
-        description += '.';
+    execute(character: Character, target: Character): [Character, Character] {
+        const updatedCharacter = characterUtils
+            .wrapCharacter(character)
+            .setStats({
+                shield: character.stats.shield + this.shieldAmount
+            })
+            .build();
 
-        return description;
+        return [updatedCharacter, target];
     }
 }

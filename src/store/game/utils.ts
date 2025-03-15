@@ -8,7 +8,7 @@ export const createInitialPlayer = (): Player => {
 
     return {              // Reference to an existing or new Character object
         gold: 10,                  // Starting gold
-        availableActions: [],      // Initial list of available actions
+        availableActions: [basicAttack(), basicAttack(), basicBlock()],      // Initial list of available actions
         preparationPointsLeft: 0   // Initial preparation points (customize as needed)
     }
 };
@@ -26,7 +26,7 @@ export const createInitialCharacter = (): Character => {
             hpRegen: 1,
             chargesPerTurn: 1,
         }),
-        chosenActions: [basicAttack(), basicAttack(), basicBlock()],
+        chosenActions: [],
         sprite: 'knight.jpg',
     });
 };
@@ -48,6 +48,6 @@ export function createAICharacter(name: string, stats: Partial<CharacterStats>):
     return createCharacter({
         name,
         stats: baseStats,
-        equipment: new CharacterEquipment()
+        equipment: []
     });
 }

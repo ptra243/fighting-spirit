@@ -1,9 +1,8 @@
 ﻿import { Character, createCharacter } from "./Character";
 import { CharacterStats, createStats } from "./CharacterStats";
 import { CharacterEquipment } from "./CharacterEquipment";
-import { Action } from "../Actions/Action";
+import { Action, ActionConfig } from "../Actions/Action";
 import { CharacterClass } from "../Classes/CharacterClass";
-import { TriggerManager } from "../Actions/Triggers/TriggerManager";
 import { IBuffBehaviour, IDamageOverTimeBehaviour } from "../Actions/Behaviours/BehaviourUnion";
 import { ActionTrigger } from "../Actions/Triggers/Trigger";
 import { Named } from "../../BattleManager";
@@ -17,12 +16,12 @@ export class CharacterBuilder {
     private stats: CharacterStats;
     private baseStats: CharacterStats;
     private sprite: string;
-    private equipment: CharacterEquipment;
-    private chosenActions: Action[];
+    private equipment: Equipment[];
+    private chosenActions: ActionConfig[];
     private classes: CharacterClass[];
-    private triggerManager: TriggerManager;
-    private activeBuffs: BuffBehaviour[];
-    private activeDOTs: DamageOverTimeBehaviour[];
+    private triggers: ActionTrigger[];
+    private activeBuffs: IBuffBehaviour[];
+    private activeDOTs: IDamageOverTimeBehaviour[];
     private isCharging: boolean;
     private chargeTurns: number;
     private currentAction: number;
@@ -33,93 +32,91 @@ export class CharacterBuilder {
         this.stats = character.stats;
         this.baseStats = character.baseStats;
         this.sprite = character.sprite;
-        this.equipment = character.equipment;
-        this.chosenActions = character.chosenActions;
-        this.classes = character.classes;
-        this.triggerManager = character.triggerManager;
-        this.activeBuffs = character.activeBuffs.map(buff => {
-            if (buff instanceof BuffBehaviour) {
-                return buff;
-            }
-            return new BuffBehaviour(
-                buff.name,
-                buff.buffType as BuffStat,
-                buff.amount,
-                buff.duration,
-                buff.isSelfBuff
-            );
-        });
-        this.activeDOTs = character.activeDOTs.map(dot => {
-            if (dot instanceof DamageOverTimeBehaviour) {
-                return dot;
-            }
-            return new DamageOverTimeBehaviour(
-                dot.name,
-                dot.damagePerTurn,
-                dot.duration
-            );
-        });
+        this.equipment = [...character.equipment];
+        this.chosenActions = [...character.chosenActions];
+        this.classes = [...character.classes];
+        this.triggers = [...character.triggers];
+        this.activeBuffs = [...character.activeBuffs];
+        this.activeDOTs = [...character.activeDOTs];
         this.isCharging = character.isCharging;
         this.chargeTurns = character.chargeTurns;
         this.currentAction = character.currentAction;
         this.logCallback = character.logCallback;
     }
 
-    // Add a class to the character
-    addClass(characterClass: CharacterClass): this {
-        this.classes = [...this.classes, characterClass];
-        return this;
-    }
-
     // Add a trigger to the character
     addTrigger(trigger: ActionTrigger): this {
-        this.triggerManager.addTrigger(trigger);
+        this.triggers.push(trigger);
         return this;
     }
 
-    // Level up a specific class
-    levelUpClass(className: string): this {
-        const classToLevel = this.classes.find(
-            (c) => c.getName() === className
-        );
-        if (classToLevel) {
-            const updatedCharacter = classToLevel.levelUp(this.build());
-            // Update all properties from the updated character
-            this.name = updatedCharacter.name;
-            this.stats = updatedCharacter.stats;
-            this.baseStats = updatedCharacter.baseStats;
-            this.sprite = updatedCharacter.sprite;
-            this.equipment = updatedCharacter.equipment;
-            this.chosenActions = updatedCharacter.chosenActions;
-            this.classes = updatedCharacter.classes;
-            this.triggerManager = updatedCharacter.triggerManager;
-            this.activeBuffs = updatedCharacter.activeBuffs.map(buff => {
-                if (buff instanceof BuffBehaviour) {
-                    return buff;
-                }
-                return new BuffBehaviour(
-                    buff.name,
-                    buff.buffType as BuffStat,
-                    buff.amount,
-                    buff.duration,
-                    buff.isSelfBuff
-                );
-            });
-            this.activeDOTs = updatedCharacter.activeDOTs.map(dot => {
-                if (dot instanceof DamageOverTimeBehaviour) {
-                    return dot;
-                }
-                return new DamageOverTimeBehaviour(
-                    dot.name,
-                    dot.damagePerTurn,
-                    dot.duration
-                );
-            });
-            this.isCharging = updatedCharacter.isCharging;
-            this.chargeTurns = updatedCharacter.chargeTurns;
-            this.currentAction = updatedCharacter.currentAction;
-            this.logCallback = updatedCharacter.logCallback;
+    // Remove a trigger from the character
+    removeTrigger(trigger: ActionTrigger): this {
+        this.triggers = this.triggers.filter(t => t !== trigger);
+        return this;
+    }
+
+    // Execute triggers of a specific type
+    executeTriggers(type: string, target: Character): [Character, Character] {
+        let updatedCharacter = this.build();
+        let updatedTarget = target;
+
+        for (const trigger of this.triggers) {
+            if (trigger.condition.type !== type || trigger.hasBeenTriggered) continue;
+
+            if (trigger.condition.chance && Math.random() > trigger.condition.chance) continue;
+
+            // if (trigger.condition.requirement &&
+            //     !trigger.condition.requirement(updatedCharacter, updatedTarget)) continue;
+
+            // if (trigger.effect.execute) {
+            //     [updatedCharacter, updatedTarget] = trigger.effect.execute(
+            //         updatedCharacter,
+            //         updatedTarget,
+            //         null
+            //     );
+            // }
+            // if (trigger.effect.behaviour) {
+            //     [updatedCharacter, updatedTarget] = trigger.effect.behaviour.execute(
+            //         updatedCharacter,
+            //         updatedTarget
+            //     );
+            // }
+            trigger.hasBeenTriggered = true;
         }
+
+        return [updatedCharacter, updatedTarget];
+    }
+
+    // Reset all triggers
+    resetTriggers(): this {
+        this.triggers.forEach(t => {
+            t.hasBeenTriggered = false;
+        });
+        return this;
+    }
+
+    // Add a buff to the character
+    addBuff(buff: IBuffBehaviour): this {
+        this.activeBuffs.push(buff);
+        return this;
+    }
+
+    // Remove a buff from the character
+    removeBuff(buff: IBuffBehaviour): this {
+        this.activeBuffs = this.activeBuffs.filter(b => b !== buff);
+        return this;
+    }
+
+    // Add a DOT to the character
+    addDOT(dot: IDamageOverTimeBehaviour): this {
+        this.activeDOTs.push(dot);
+        return this;
+    }
+
+    // Remove a DOT from the character
+    removeDOT(dot: IDamageOverTimeBehaviour): this {
+        this.activeDOTs = this.activeDOTs.filter(d => d !== dot);
         return this;
     }
 
@@ -196,164 +193,75 @@ export class CharacterBuilder {
         return this.modifyEnergy(amount, source, "recover");
     }
 
-    // Add a buff to the character
-    addBuff(buff: BuffBehaviour): this {
-        this.activeBuffs = [...this.activeBuffs, buff.clone({})];
-        if (this.logCallback) {
-            this.logCallback.messageLog(
-                `${this.name} gained ${buff.name}`
-            );
-            this.logCallback.battleLog(
-                this.build(),
-                "buff",
-                buff.amount,
-                this.build()
-            );
-        }
+    // Add equipment to the character
+    addEquipment(equipment: Equipment): this {
+        this.equipment.push(equipment);
         return this;
     }
 
-    // Add a damage-over-time (DOT) effect
-    addDOT(dot: DamageOverTimeBehaviour): this {
-        this.activeDOTs = [...this.activeDOTs, dot.clone({})];
-        if (this.logCallback) {
-            this.logCallback.messageLog(
-                `${dot.name} has been applied to ${this.name}.`
-            );
-        }
+    // Remove equipment from the character
+    removeEquipment(equipment: Equipment): this {
+        this.equipment = this.equipment.filter(e => e !== equipment);
         return this;
     }
 
-    // Apply start-of-turn effects
-    applyStartOfTurnEffects(): this {
-        // Apply class stats
-        for (const characterClass of this.classes) {
-            const classStats = characterClass.getCurrentStats();
-            this.stats = createStats({
-                ...this.stats,
-                ...classStats
-            });
-        }
+    // Add an action to the character
+    addAction(action: Action): this {
+        this.chosenActions.push(action);
+        return this;
+    }
+
+    // Remove an action from the character
+    removeAction(action: Action): this {
+        this.chosenActions = this.chosenActions.filter(a => a !== action);
+        return this;
+    }
+
+    // Add a class to the character
+    addClass(characterClass: CharacterClass): this {
+        this.classes.push(characterClass);
+        return this;
+    }
+
+    // Remove a class from the character
+    removeClass(characterClass: CharacterClass): this {
+        this.classes = this.classes.filter(c => c !== characterClass);
+        return this;
+    }
+
+    // Update stats
+    updateStats(newStats: Partial<CharacterStats>): this {
+        this.stats = createStats({ ...this.stats, ...newStats });
+        return this;
+    }
+
+    // Apply out of battle stats
+    applyOutOfBattleStats(): this {
+        // Reset stats to base stats
+        this.stats = createStats({ ...this.baseStats });
 
         // Apply equipment buffs
-        const equipmentBuffs = this.equipment.getEquippedItems().flatMap(item => item.getBuffs());
-        for (const buff of equipmentBuffs) {
+        if (this.equipment.length > 0) {
+            const equipmentBuffs = this.equipment.reduce((total, item) => ({
+                hitPoints: (total.hitPoints || 0) + (item.hitPointsBonus || 0),
+                maxHitPoints: (total.maxHitPoints || 0) + (item.hitPointsBonus || 0),
+                attack: (total.attack || 0) + (item.attackBonus || 0),
+                defence: (total.defence || 0) + (item.defenseBonus || 0),
+                shield: 0,
+                energy: (total.energy || 0),
+                maxEnergy: (total.maxEnergy || 0),
+                energyRegen: (total.energyRegen || 0),
+                hpRegen: (total.hpRegen || 0) + (item.hpRegenBonus || 0),
+                speed: (total.speed || 0),
+                actionCounter: (total.actionCounter || 0),
+                chargesPerTurn: (total.chargesPerTurn || 0)
+            }), {} as Partial<CharacterStats>);
+
             this.stats = createStats({
                 ...this.stats,
-                ...buff
+                ...equipmentBuffs
             });
         }
-
-        // Decrease effect durations and remove expired effects
-        this.activeBuffs = this.activeBuffs.filter(buff => {
-            buff.duration--;
-            return buff.duration > 0;
-        });
-
-        this.activeDOTs = this.activeDOTs.filter(dot => {
-            dot.duration--;
-            return dot.duration > 0;
-        });
-
-        // Decay shield
-        this.stats = createStats({
-            ...this.stats,
-            shield: Math.max(0, this.stats.shield - 1)
-        });
-
-        // Apply DOTs
-        for (const dot of this.activeDOTs) {
-            const damage = dot.damagePerTurn;
-            this.stats = createStats({
-                ...this.stats,
-                hitPoints: Math.max(0, this.stats.hitPoints - damage)
-            });
-        }
-
-        // Apply active buffs
-        for (const buff of this.activeBuffs) {
-            const buffStats = {
-                [buff.buffType]: buff.amount
-            };
-            this.stats = createStats({
-                ...this.stats,
-                ...buffStats
-            });
-        }
-
-        // Apply regen
-        this.stats = createStats({
-            ...this.stats,
-            hitPoints: Math.min(this.stats.maxHitPoints, this.stats.hitPoints + this.stats.hpRegen),
-            energy: Math.min(this.stats.maxEnergy, this.stats.energy + this.stats.energyRegen)
-        });
-
-        return this;
-    }
-
-    // Add equipment to the character
-    addEquipment(equipment: CharacterEquipment): this {
-        this.equipment = equipment;
-        return this;
-    }
-
-    // Remove equipment by name
-    removeEquipment(equipmentName: string): this {
-        const equipment = this.equipment.getEquippedItems().find(
-            (eq) => eq.name === equipmentName
-        );
-
-        if (!equipment) {
-            this.logCallback?.messageLog(
-                `${this.name} doesn't have ${equipmentName} equipped`
-            );
-            return this;
-        }
-
-        this.equipment = this.equipment.removeEquipment(equipmentName);
-        return this;
-    }
-
-    // Get the character's equipment (doesn't modify the character)
-    getEquipment(): Equipment[] {
-        return this.equipment.getEquippedItems();
-    }
-
-    // Reset the character
-    reset(): this {
-        this.stats = createStats(this.baseStats);
-        this.chosenActions = [];
-        this.isCharging = false;
-        this.chargeTurns = 0;
-        this.currentAction = 0;
-        return this;
-    }
-
-    // Heal to full HP
-    healToFull(): this {
-        this.stats = createStats({
-            ...this.stats,
-            hitPoints: this.stats.maxHitPoints
-        });
-        return this;
-    }
-
-    // Apply out-of-battle stats
-    applyOutOfBattleStats(): this {
-        // Apply class stats
-        for (const characterClass of this.classes) {
-            const classStats = characterClass.getCurrentStats();
-            this.stats = createStats({
-                ...this.stats,
-                ...classStats
-            });
-        }
-
-        // Set to full HP
-        this.stats = createStats({
-            ...this.stats,
-            hitPoints: this.stats.maxHitPoints
-        });
 
         return this;
     }
@@ -368,7 +276,7 @@ export class CharacterBuilder {
             equipment: this.equipment,
             chosenActions: this.chosenActions,
             classes: this.classes,
-            triggerManager: this.triggerManager,
+            triggers: this.triggers,
             activeBuffs: this.activeBuffs,
             activeDOTs: this.activeDOTs,
             isCharging: this.isCharging,
@@ -383,11 +291,6 @@ export class CharacterBuilder {
             ...this.stats,
             ...stats
         });
-        return this;
-    }
-
-    addAction(action: Action): CharacterBuilder {
-        this.chosenActions.push(action);
         return this;
     }
 

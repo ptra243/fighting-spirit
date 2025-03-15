@@ -1,115 +1,63 @@
-﻿import {IAttackBehaviour} from "./BehaviourUnion";
-import type {Character} from "../../Character/Character";
-import {characterUtils} from "../../Character/Character";
-import {TriggerManager} from "../Triggers/TriggerManager";
-import {DamageContext} from "../Triggers/Trigger";
+﻿import {Character, characterUtils} from "../../Character/Character";
+import {IAttackBehaviour} from "./BehaviourUnion";
 
 export enum AttackScalingStat {
     Attack = "attack",
     Defense = "defense",
     Shield = "shield",
     Energy = "energy",
-    Health = "health"
+    Health = "hitPoints"
 }
 
 export class AttackBehaviour implements IAttackBehaviour {
-    type: "attack";
+    readonly type = "attack";
     name: string;
     description: string;
-    damage: number; // Damage dealt when charged is complete
+    damage: number;
     scale: AttackScalingStat;
     scaledPercent: number;
-    ignoreDefence: boolean
-
-    constructor(name: string, damage: number, scale: AttackScalingStat = AttackScalingStat.Attack, scaledPercent: number = 100, ignoreDefence: boolean = false) {
-        this.type = "attack";
-        this.name = name;
-        this.damage = damage;
-        this.scale = scale;
-        this.scaledPercent = scaledPercent;
-        this.ignoreDefence = ignoreDefence;
-        this.description = `Deal ${damage} damage${scaledPercent > 0 ? ` + ${scaledPercent}% of attack` : ''}${ignoreDefence ? ' (ignores defence)' : ''}`;
+    ignoreDefence: boolean;
+    
+    constructor(config: IAttackBehaviour) {
+        this.name = config.name;
+        this.damage = config.damage;
+        this.scale = config.scale;
+        this.scaledPercent = config.scaledPercent;
+        this.ignoreDefence = config.ignoreDefence;
+        this.description = this.getDescription();
     }
 
-    execute(character: Character, target: Character, triggerManager?: TriggerManager): [Character, Character] {
-        // Determine which stat to scale with
-        const scaledStat = this.getScaledStat(character);
-
-        const scaledDamage = Math.floor(scaledStat * (this.scaledPercent / 100));
-
-        // Calculate damage
-        //get rid of (scaledStat * (1 + this.scaledPercent * 0.1))
-        const totalDamage = this.damage + scaledDamage;
-
-        // Apply damage to the target
-        let updatedTarget = characterUtils.wrapCharacter(target)
-            .takeDamage(totalDamage, character, this.ignoreDefence).build();
-
-        let updatedCharacter = character;
-
-        // Execute onDamageDealt triggers for the attacker
-        if (triggerManager) {
-            console.log('trigger damage ' + totalDamage);
-            [updatedCharacter, updatedTarget] = triggerManager.executeTriggers<DamageContext>(
-                'onDamageDealt',
-                updatedCharacter,
-                updatedTarget,
-                {totalDamage: totalDamage}
-            );
-            // updatedTarget.triggerManager
-
-        }
-        if (updatedTarget.triggerManager) {
-            // Execute onDamageTaken triggers for the target
-            [updatedTarget, updatedCharacter] = updatedTarget.triggerManager.executeTriggers<DamageContext>(
-                'onDamageTaken',
-                updatedTarget,
-                updatedCharacter,
-                {totalDamage: totalDamage}
-            );
-        }
-        // Return updated states of both character and target
-        return [updatedCharacter, updatedTarget];
-
+    getDescription(): string {
+        return `Deal ${this.damage} damage (${this.scaledPercent}% ${this.scale} scaling)${this.ignoreDefence ? ' (ignores defence)' : ''}`;
     }
 
-    getScaledStat(character: Character): number {
+    private getScaledStat(character: Character): number {
         switch (this.scale) {
             case AttackScalingStat.Attack:
                 return character.stats.attack;
             case AttackScalingStat.Defense:
                 return character.stats.defence;
-            case AttackScalingStat.Energy:
-                return character.stats.energy;
             case AttackScalingStat.Shield:
                 return character.stats.shield;
+            case AttackScalingStat.Energy:
+                return character.stats.energy;
             case AttackScalingStat.Health:
                 return character.stats.hitPoints;
             default:
-                return 1; // Fallback in case of an invalid scale
+                return 0;
         }
     }
 
-    getDescription(): string {
-        let description = '';
+    execute(character: Character, target: Character): [Character, Character] {
+        const scaledStat = this.getScaledStat(character);
+        const scaledDamage = Math.floor(scaledStat * (this.scaledPercent / 100));
+        const totalDamage = this.damage + scaledDamage;
 
-        // Add damage and scaling information
-        description += `Deal ${this.damage} `;
+        const updatedTarget = characterUtils
+            .wrapCharacter(target)
+            .takeDamage(totalDamage, character, this.ignoreDefence)
+            .build();
 
-        // Add scaling stat with proper capitalization
-        if (this.scale) {
-            const scaledStatName = this.scale.charAt(0).toUpperCase() + this.scale.slice(1);
-            description += `${scaledStatName} `;
-        }
-
-        description += 'Damage';
-
-        // Add scaling percentage if it's different from 100%
-        if (this.scaledPercent !== 100) {
-            description += ` (${this.scaledPercent}% scaling)`;
-        }
-
-        return description;
+        return [character, updatedTarget];
     }
-
 }
